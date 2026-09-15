@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Hogaru — Simulación de página web</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+  <header>
+    <div class="logo"><div class="logo-mark"></div>Hogaru</div>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Buscar</a>
+      <a href="#">Historial</a>
+      <a href="#">Cómo funciona</a>
+    </nav>
+    <div class="header-actions">
+      <a class="btn-outline" href="#">Ingresar</a>
+      <a class="btn-solid" href="#">Registrarme</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Limpieza para tu hogar, sin vueltas</h1>
+      <p>Encontrá prestadores verificados cerca tuyo y agendá un turno en minutos.</p>
+      <div class="search-box">
+        <input type="text" placeholder="¿Qué servicio necesitás?">
+        <select><option>Mi zona</option></select>
+        <button>Buscar</button>
+      </div>
+    </div>
+    <div class="hero-illustration">Ilustración del hogar</div>
+  </section>
+
+  <div class="categories">
+    <span class="chip active">Limpieza doméstica</span>
+    <span class="chip">Limpieza de oficinas</span>
+    <span class="chip">Jardinería</span>
+    <span class="chip">Limpieza profunda</span>
+  </div>
+
+  <section class="listado">
+    <h2>Prestadores disponibles cerca tuyo</h2>
+    <div class="grid-cards">
+      <div class="card">
+        <div class="card-top">
+          <div class="avatar">MG</div>
+          <div><div class="name">Marisa G.</div><div class="role">Limpieza doméstica</div></div>
+        </div>
+        <div class="card-rating">★ 4.9 · 128 servicios</div>
+        <div class="card-price">$4.500 / hora</div>
+        <button>Ver disponibilidad</button>
+      </div>
+      <div class="card">
+        <div class="card-top">
+          <div class="avatar">RT</div>
+          <div><div class="name">Roberto T.</div><div class="role">Limpieza profunda</div></div>
+        </div>
+        <div class="card-rating">★ 4.7 · 84 servicios</div>
+        <div class="card-price">$5.200 / hora</div>
+        <button>Ver disponibilidad</button>
+      </div>
+      <div class="card">
+        <div class="card-top">
+          <div class="avatar">LP</div>
+          <div><div class="name">Lucía P.</div><div class="role">Limpieza de oficinas</div></div>
+        </div>
+        <div class="card-rating">★ 4.8 · 61 servicios</div>
+        <div class="card-price">$4.900 / hora</div>
+        <button>Ver disponibilidad</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="historial">
+    <h2>Tu historial de servicios</h2>
+    <table>
+      <thead>
+        <tr><th>Servicio</th><th>Prestador</th><th>Fecha</th><th>Monto</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Limpieza doméstica</td><td>Marisa G.</td><td>10 sep, 14:00</td><td>$4.500</td>
+          <td><span class="estado finalizado">Finalizado</span></td>
+        </tr>
+        <tr>
+          <td>Limpieza de oficina</td><td>Roberto T.</td><td>3 sep, 09:00</td><td>$5.200</td>
+          <td><span class="estado cancelado">Cancelado</span></td>
+        </tr>
+        <tr>
+          <td>Limpieza profunda</td><td>Marisa G.</td><td>16 sep, 11:30</td><td>$4.500</td>
+          <td><span class="estado pendiente">Pendiente</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>Hogaru — proyecto de prácticas profesionalizantes, E.E.S.T. N°6</footer>
+
+</body>
+</html>
