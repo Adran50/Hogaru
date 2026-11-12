@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingresar — Hogaru</title>
+  <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+  <link rel="stylesheet" href="../estilos.css">
+</head>
+<body data-raiz="../">
+  <div id="navbar"></div>
+  <main class="contenedor angosto">
+    <div class="panel">
+      <h1>Ingresar</h1>
+      <p class="muted">Entrá con tu cuenta de cliente o de prestador.</p>
+      <div id="aviso" class="oculto"></div>
+      <form id="form-login">
+        <div class="campo"><label for="email">Email</label><input type="email" id="email" required autocomplete="username"></div>
+        <div class="campo"><label for="password">Contraseña</label><input type="password" id="password" required autocomplete="current-password"></div>
+        <button class="btn btn-ancho" type="submit" id="btn">Ingresar</button>
+      </form>
+      <p class="muted" style="margin-top:14px">¿No tenés cuenta? <a href="registro.html">Registrate</a></p>
+    </div>
+  </main>
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/login.js"></script>
+</body>
+</html>

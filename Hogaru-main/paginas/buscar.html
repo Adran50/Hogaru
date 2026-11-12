@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buscar servicios — Hogaru</title>
+  <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+  <link rel="stylesheet" href="../estilos.css">
+</head>
+<body data-raiz="../">
+  <div id="navbar"></div>
+  <main class="contenedor">
+    <h1>Buscar servicios</h1>
+    <form class="panel" id="filtros">
+      <div class="grilla-2">
+        <div class="campo"><label for="q">¿Qué buscás?</label><input id="q" placeholder="Nombre, categoría o descripción"></div>
+        <div class="campo"><label for="categoria">Categoría</label><select id="categoria"><option value="">Todas</option></select></div>
+      </div>
+      <div class="grilla-2">
+        <div class="campo"><label for="tarifa-max">Tarifa máxima por hora ($)</label><input type="number" id="tarifa-max" min="1" step="any"></div>
+        <div class="campo"><label for="orden">Ordenar por</label>
+          <select id="orden"><option value="puntuacion">Mejor calificados</option><option value="tarifa">Menor precio</option></select>
+        </div>
+      </div>
+      <button class="btn" type="submit">Buscar</button>
+    </form>
+    <div id="aviso" class="oculto"></div>
+    <p class="muted" id="resumen"></p>
+    <div class="grilla-cards" id="resultados"></div>
+    <div style="text-align:center;margin-top:20px"><button class="btn btn-claro oculto" id="ver-mas">Ver más</button></div>
+  </main>
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/buscar.js"></script>
+</body>
+</html>

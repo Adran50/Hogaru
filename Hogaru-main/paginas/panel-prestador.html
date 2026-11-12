@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi panel — Hogaru</title>
+  <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+  <link rel="stylesheet" href="../estilos.css">
+</head>
+<body data-raiz="../">
+  <div id="navbar"></div>
+  <main class="contenedor medio" style="max-width:900px">
+    <h1>Mi panel</h1>
+    <div id="aviso" class="oculto"></div>
+
+    <div class="panel">
+      <div class="fila-entre"><h2>Verificación de identidad</h2><span id="estado-verif"></span></div>
+      <p class="muted" id="texto-verif"></p>
+      <div id="docs"></div>
+      <form id="form-doc" style="margin-top:14px">
+        <div class="grilla-2">
+          <div class="campo"><label for="tipo-doc">Documento</label>
+            <select id="tipo-doc"><option value="dni">DNI</option><option value="antecedentes_penales">Certificado de antecedentes penales</option><option value="otro">Otro</option></select></div>
+          <div class="campo"><label for="url-doc">Enlace o nombre del archivo</label><input id="url-doc" required maxlength="255" placeholder="Ej: https://drive.google.com/… o dni_frente.pdf"></div>
+        </div>
+        <button class="btn btn-claro" type="submit">Cargar documento</button>
+        <div class="ayuda">En esta versión académica se guarda la ubicación del archivo; la revisión la hace un administrador.</div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Mis servicios</h2>
+      <div class="tabla-envoltorio" id="servicios"></div>
+    </div>
+
+    <div class="panel" id="panel-publicar">
+      <h2>Publicar un servicio</h2>
+      <div class="aviso aviso-alerta oculto" id="bloqueo-publicar">Podés publicar servicios cuando un administrador apruebe tu DNI y tus antecedentes.</div>
+      <form id="form-servicio">
+        <div class="grilla-2">
+          <div class="campo"><label for="categoria">Categoría</label><select id="categoria" required></select></div>
+          <div class="campo"><label for="tarifa">Tarifa por hora ($)</label><input type="number" id="tarifa" min="1" step="any" required></div>
+        </div>
+        <div class="campo"><label for="descripcion">Descripción</label><textarea id="descripcion" maxlength="2000" placeholder="Qué incluye tu servicio, si llevás tus productos, etc."></textarea></div>
+        <label>Días y horarios en los que atendés</label>
+        <div id="editor-horarios" style="margin-bottom:14px"></div>
+        <button class="btn" type="submit" id="btn-publicar">Publicar servicio</button>
+      </form>
+    </div>
+  </main>
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/panel-prestador.js"></script>
+</body>
+</html>
