@@ -1,0 +1,109 @@
+# =====================================================
+# .gitignore — Hogaru
+# =====================================================
+
+# -----------------------------------------------------
+# 1. Variables de Entorno y Secretos (¡NUNCA SUBIR A GIT!)
+# -----------------------------------------------------
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# -----------------------------------------------------
+# 2. Entornos Virtuales de Python
+# -----------------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# -----------------------------------------------------
+# 3. Compilación y Caché de Python
+# -----------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# -----------------------------------------------------
+# 4. Testing, Cobertura y Linters
+# -----------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+
+# -----------------------------------------------------
+# 5. Archivos Subidos por Usuarios (Documentos / PDFs)
+# -----------------------------------------------------
+# Ignora los archivos físicos cargados (DNI, certificados), pero conserva la carpeta
+backend/uploads/documentos/*
+!backend/uploads/documentos/.gitkeep
+
+# -----------------------------------------------------
+# 6. Editores de Código e IDEs
+# -----------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# -----------------------------------------------------
+# 7. Archivos del Sistema Operativo
+# -----------------------------------------------------
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.directory
+
+# -----------------------------------------------------
+# 8. Logs y Archivos Temporales
+# -----------------------------------------------------
+*.log
+logs/
+*.tmp

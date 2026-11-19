@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hogaru — Servicios de Limpieza Doméstica Confiables</title>
+  <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body data-raiz="">
+  <div id="navbar"></div>
+
+  <!-- Hero principal -->
+  <section class="hero">
+    <span class="etiqueta-hero">Plataforma Segura de Servicios</span>
+    <h1>Encontrá a la persona ideal para cuidar y limpiar tu hogar</h1>
+    <p class="subtitulo-hero">
+      Conectamos hogares con profesionales de limpieza independientes y verificados con antecedentes penales y DNI. Rápido, seguro y sin intermediarios informales.
+    </p>
+    
+    <form class="buscador" id="form-buscar">
+      <input type="text" id="q" placeholder="¿Qué necesitás? Ej: Limpieza profunda" aria-label="Buscar servicio">
+      <select id="categoria" aria-label="Categoría">
+        <option value="">Todas las categorías</option>
+      </select>
+      <button class="btn" type="submit">Buscar servicio</button>
+    </form>
+    <p class="muted" style="margin-top:12px; font-size:0.95rem">
+      ¿Tenés un trabajo puntual con tu propio presupuesto? <a href="paginas/anuncios.html" style="color:var(--verde-700,#1b4332); font-weight:600; text-decoration:underline">Publicá un aviso o mirá la Bolsa de Trabajos →</a>
+    </p>
+
+    <div class="metricas-hero">
+      <div class="metrica">
+        <span class="metrica-num">+500</span>
+        <span class="metrica-txt">Servicios completados</span>
+      </div>
+      <div class="metrica-separador"></div>
+      <div class="metrica">
+        <span class="metrica-num">4.9 ★</span>
+        <span class="metrica-txt">Promedio de satisfacción</span>
+      </div>
+      <div class="metrica-separador"></div>
+      <div class="metrica">
+        <span class="metrica-num">100%</span>
+        <span class="metrica-txt">Perfiles verificados</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="contenedor">
+    <div class="fila-entre" style="margin-bottom: 8px;">
+      <div>
+        <h2>Prestadores destacados</h2>
+        <p class="muted">Los profesionales mejor calificados de la comunidad.</p>
+      </div>
+      <a href="paginas/buscar.html" class="btn btn-claro btn-chico">Ver todos →</a>
+    </div>
+
+    <div class="grilla-cards" id="destacados">
+      <p class="muted">Cargando prestadores…</p>
+    </div>
+
+    <h2 style="margin-top: 54px; text-align: center;">¿Cómo funciona Hogaru?</h2>
+    <p class="muted" style="text-align: center; margin-bottom: 24px;">Dos formas de coordinar un servicio con total seguridad.</p>
+    
+    <div class="pasos">
+      <div class="paso">
+        <div class="num-icono">🔍</div>
+        <h3>1. Buscá o Publicá</h3>
+        <p class="muted">Elegí prestadores por su catálogo de tarifas o publicá tu propio aviso de trabajo en la Bolsa con tu presupuesto y horario.</p>
+      </div>
+      <div class="paso">
+        <div class="num-icono">📅</div>
+        <h3>2. Coordiná el turno</h3>
+        <p class="muted">Revisá ofertas de prestadores verificados con DNI y antecedentes penales, o contratá directo por calendario.</p>
+      </div>
+      <div class="paso">
+        <div class="num-icono">✨</div>
+        <h3>3. Pagá y calificá</h3>
+        <p class="muted">El pago se custodia en la plataforma y al finalizar podés calificar el trato, puntualidad y prolijidad del profesional.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="pie">
+    <strong>Hogaru</strong> · Prácticas Profesionalizantes · E.E.S.T. N°6 "Chacabuco" · Proyecto Final 7° Año
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/index.js"></script>
+</body>
+</html>

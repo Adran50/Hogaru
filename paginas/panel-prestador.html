@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi panel — Hogaru</title>
+  <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+  <link rel="stylesheet" href="../estilos.css">
+</head>
+<body data-raiz="../">
+  <div id="navbar"></div>
+  <main class="contenedor medio" style="max-width:900px">
+    <h1>Mi panel</h1>
+    <div id="aviso" class="oculto"></div>
+
+    <div class="panel">
+      <div class="fila-entre"><h2>Verificación de identidad</h2><span id="estado-verif"></span></div>
+      <p class="muted" id="texto-verif"></p>
+      
+      <!-- Tabla de documentos subidos -->
+      <div id="docs"></div>
+
+      <!-- Carga de DNI y Antecedentes -->
+      <div style="margin-top:20px; border-top:1px solid var(--borde); padding-top:16px">
+        <h3 style="font-size:1.05rem; margin-bottom:6px">Cargar o actualizar documentación requerida</h3>
+        <p class="muted" style="font-size:0.85rem; margin-bottom:14px">Para que un administrador pueda aprobar tu cuenta, debés presentar tanto tu DNI como tu Certificado de Antecedentes Penales.</p>
+        
+        <div class="grilla-2" style="gap:16px">
+          <!-- Tarjeta DNI Frente -->
+          <div style="border:1px solid var(--borde); border-radius:10px; padding:16px; background:var(--fondo)">
+            <div class="fila-entre" style="margin-bottom:8px">
+              <strong>1a. DNI Frente</strong>
+              <span id="badge-doc-dni-frente"><span class="badge">No presentado</span></span>
+            </div>
+            <p class="muted" style="font-size:0.85rem; margin-bottom:10px">Foto nítida del frente del DNI.</p>
+            <form id="form-doc-dni-frente">
+              <input type="file" id="archivo-dni-frente" accept=".pdf,image/jpeg,image/png" required style="margin-bottom:10px; width:100%">
+              <button class="btn btn-claro btn-chico" type="submit" id="btn-subir-dni-frente">Subir Frente</button>
+            </form>
+          </div>
+
+          <!-- Tarjeta DNI Dorso -->
+          <div style="border:1px solid var(--borde); border-radius:10px; padding:16px; background:var(--fondo)">
+            <div class="fila-entre" style="margin-bottom:8px">
+              <strong>1b. DNI Dorso</strong>
+              <span id="badge-doc-dni-dorso"><span class="badge">No presentado</span></span>
+            </div>
+            <p class="muted" style="font-size:0.85rem; margin-bottom:10px">Foto nítida del dorso del DNI.</p>
+            <form id="form-doc-dni-dorso">
+              <input type="file" id="archivo-dni-dorso" accept=".pdf,image/jpeg,image/png" required style="margin-bottom:10px; width:100%">
+              <button class="btn btn-claro btn-chico" type="submit" id="btn-subir-dni-dorso">Subir Dorso</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tarjeta Antecedentes -->
+        <div style="border:1px solid var(--borde); border-radius:10px; padding:16px; background:var(--fondo); margin-top:16px">
+          <div class="fila-entre" style="margin-bottom:8px">
+            <strong>2. Certificado de Antecedentes Penales</strong>
+            <span id="badge-doc-ant"><span class="badge">No presentado</span></span>
+          </div>
+          <p class="muted" style="font-size:0.85rem; margin-bottom:10px">Certificado nacional oficial de antecedentes en PDF o imagen.</p>
+          <form id="form-doc-ant">
+            <input type="file" id="archivo-ant" accept=".pdf,image/jpeg,image/png" required style="margin-bottom:10px; width:100%">
+            <button class="btn btn-claro btn-chico" type="submit" id="btn-subir-ant">Subir Antecedentes</button>
+          </form>
+        </div>
+
+        <details style="margin-top:14px; font-size:0.9rem">
+          <summary style="cursor:pointer; color:var(--texto-secundario)">+ Subir DNI completo en 1 solo archivo (PDF) o enlace externo</summary>
+          <div class="grilla-2" style="margin-top:10px; gap:16px">
+            <div style="border:1px solid var(--borde); border-radius:8px; padding:12px; background:var(--fondo)">
+              <p style="font-weight:600; margin-bottom:6px; font-size:0.9rem">DNI Completo (Frente y dorso juntos en un PDF)</p>
+              <form id="form-doc-dni-unificado">
+                <input type="file" id="archivo-dni-unificado" accept=".pdf,image/jpeg,image/png" required style="margin-bottom:8px; width:100%">
+                <button class="btn btn-borde btn-chico" type="submit" id="btn-subir-dni-unificado">Subir DNI unificado</button>
+              </form>
+            </div>
+            <div style="border:1px solid var(--borde); border-radius:8px; padding:12px; background:var(--fondo)">
+              <p style="font-weight:600; margin-bottom:6px; font-size:0.9rem">Enlace web externo</p>
+              <form id="form-doc-manual">
+                <div class="campo"><label>Tipo</label><select id="tipo-doc-manual"><option value="dni">DNI unificado</option><option value="dni_frente">DNI Frente</option><option value="dni_dorso">DNI Dorso</option><option value="antecedentes_penales">Antecedentes</option><option value="otro">Otro</option></select></div>
+                <div class="campo"><label>Enlace</label><input id="url-doc-manual" placeholder="https://..." required></div>
+                <button class="btn btn-borde btn-chico" type="submit">Cargar enlace</button>
+              </form>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Mis servicios</h2>
+      <div class="tabla-envoltorio" id="servicios"></div>
+    </div>
+
+    <div class="panel" id="panel-publicar">
+      <div class="fila-entre">
+        <h2>Publicar un servicio</h2>
+        <button type="button" class="btn btn-borde btn-chico" id="btn-abrir-sugerir">+ Sugerir nueva categoría</button>
+      </div>
+      <div class="aviso aviso-alerta oculto" id="bloqueo-publicar">Podés publicar servicios cuando un administrador apruebe tu DNI y tus antecedentes.</div>
+      <form id="form-servicio">
+        <div class="grilla-2">
+          <div class="campo"><label for="categoria">Categoría</label><select id="categoria" required></select></div>
+          <div class="campo"><label for="tarifa">Tarifa por hora ($)</label><input type="number" id="tarifa" min="1" step="any" required></div>
+        </div>
+        <div class="campo"><label for="descripcion">Descripción</label><textarea id="descripcion" maxlength="2000" placeholder="Qué incluye tu servicio, si llevás tus productos, etc."></textarea></div>
+        <label>Días y horarios en los que atendés</label>
+        <div id="editor-horarios" style="margin-bottom:14px"></div>
+        <button class="btn" type="submit" id="btn-publicar">Publicar servicio</button>
+      </form>
+    </div>
+
+    <!-- Modal para sugerir categoría -->
+    <div class="modal-envoltorio oculto" id="modal-sugerir">
+      <div class="modal panel" style="max-width:480px; width:95%">
+        <h2>Sugerir nueva categoría</h2>
+        <p class="muted">Si no encontrás tu especialidad, proponé un rubro nuevo para que el administrador lo incorpore.</p>
+        <form id="form-sugerir-cat">
+          <div class="campo"><label>Nombre del oficio / servicio</label><input id="sugerir-nombre" required minlength="3" maxlength="80" placeholder="Ej: Limpieza de tapizados"></div>
+          <div class="campo"><label>Icono o emoji</label><input id="sugerir-icono" maxlength="50" placeholder="Ej: 🛋️ o ✨" value="✨"></div>
+          <div class="campo"><label>Descripción</label><textarea id="sugerir-desc" maxlength="200" rows="2" placeholder="Explicá brevemente qué tareas abarca"></textarea></div>
+          <div class="fila" style="justify-content:flex-end; gap:8px">
+            <button type="button" class="btn btn-borde" id="btn-cerrar-sugerir">Cancelar</button>
+            <button type="submit" class="btn">Enviar propuesta</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/panel-prestador.js"></script>
+</body>
+</html>

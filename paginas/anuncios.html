@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Avisos de Trabajo — Hogaru</title>
+  <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+  <link rel="stylesheet" href="../estilos.css">
+  <style>
+    .anuncio-card {
+      border: 1px solid var(--borde);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .anuncio-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .anuncio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .anuncio-precio {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--verde-700, #1b4332);
+      background: var(--verde-50, #f0fdf4);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--verde-200, #bbf7d0);
+    }
+    .anuncio-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 0.9rem;
+      color: var(--texto-secundario, #6c757d);
+    }
+    .anuncio-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .postulacion-item {
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: var(--fondo);
+    }
+  </style>
+</head>
+<body data-raiz="../">
+  <div id="navbar"></div>
+  <main class="contenedor">
+    <div class="fila" style="justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+      <div>
+        <h1 id="titulo-pagina">Bolsa de Trabajos y Avisos</h1>
+        <p class="muted">Publicá lo que necesitás con tu presupuesto o postulate con tu cotización.</p>
+      </div>
+      <button class="btn oculto" id="btn-abrir-publicar">+ Publicar nuevo aviso</button>
+    </div>
+
+    <!-- Pestañas de vista -->
+    <div class="tabs" style="margin-bottom:18px" id="tabs-anuncios">
+      <button class="chip activo" id="tab-bolsa">Bolsa de trabajos disponibles</button>
+      <button class="chip oculto" id="tab-mis-anuncios">Mis avisos publicados</button>
+    </div>
+
+    <!-- Filtro por categoría en la bolsa -->
+    <div class="fila" id="filtros-bolsa" style="margin-bottom:16px; gap:10px;">
+      <select id="filtro-categoria" style="max-width:260px;">
+        <option value="">Todas las categorías</option>
+      </select>
+      <input type="text" id="filtro-texto" placeholder="Buscar por palabra clave…" style="max-width:280px;">
+    </div>
+
+    <div id="aviso" class="oculto"></div>
+
+    <!-- Contenedor principal de lista -->
+    <div id="lista-anuncios">
+      <p class="muted">Cargando avisos de trabajo…</p>
+    </div>
+
+    <!-- Modal / Panel para publicar anuncio (Clientes) -->
+    <div class="modal-envoltorio oculto" id="modal-publicar">
+      <div class="modal panel" style="max-width:640px; width:95%;">
+        <h2>Publicar aviso de trabajo</h2>
+        <p class="muted">Describí la tarea, el presupuesto ofrecido y el horario para recibir postulaciones.</p>
+        <form id="form-publicar-anuncio">
+          <div class="campo">
+            <label for="pub-titulo">Título del aviso</label>
+            <input id="pub-titulo" required minlength="5" maxlength="120" placeholder="Ej: Limpieza profunda post-mudanza en 3 ambientes">
+          </div>
+          <div class="grilla-2">
+            <div class="campo">
+              <label for="pub-categoria">Categoría</label>
+              <select id="pub-categoria" required></select>
+            </div>
+            <div class="campo">
+              <label for="pub-presupuesto">Presupuesto ofrecido ($)</label>
+              <input type="number" id="pub-presupuesto" required min="1" step="any" placeholder="Ej: 35000">
+            </div>
+          </div>
+          <div class="grilla-2">
+            <div class="campo">
+              <label for="pub-fecha">Fecha y hora requerida</label>
+              <input type="datetime-local" id="pub-fecha" required>
+            </div>
+            <div class="campo">
+              <label for="pub-duracion">Duración estimada (horas)</label>
+              <input type="number" id="pub-duracion" required min="0.5" max="12" step="0.5" value="3">
+            </div>
+          </div>
+          <div class="campo">
+            <label for="pub-direccion">Dirección / Localidad</label>
+            <input id="pub-direccion" required maxlength="200" placeholder="Ej: Av. San Martín 1420, Ramos Mejía">
+          </div>
+          <div class="campo">
+            <label for="pub-descripcion">Detalle de las tareas</label>
+            <textarea id="pub-descripcion" required minlength="10" maxlength="2000" rows="3" placeholder="Contá qué hay que limpiar, si hay que llevar productos, mascotas en el hogar, etc."></textarea>
+          </div>
+          <div class="fila" style="justify-content:flex-end; gap:8px;">
+            <button type="button" class="btn btn-borde" id="btn-cerrar-publicar">Cancelar</button>
+            <button type="submit" class="btn" id="btn-confirmar-publicar">Publicar aviso</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal para postularse con cotización (Prestadores) -->
+    <div class="modal-envoltorio oculto" id="modal-postular">
+      <div class="modal panel" style="max-width:500px; width:95%;">
+        <h2>Postularme a este trabajo</h2>
+        <p class="muted" id="postular-anuncio-titulo"></p>
+        <form id="form-postular">
+          <input type="hidden" id="postular-id-anuncio">
+          <div class="campo">
+            <label for="postular-precio">Tu cotización total ($)</label>
+            <input type="number" id="postular-precio" required min="1" step="any">
+            <div class="ayuda">Podés aceptar el presupuesto propuesto por el cliente o contraofertar otro monto.</div>
+          </div>
+          <div class="campo">
+            <label for="postular-mensaje">Mensaje para el cliente (opcional)</label>
+            <textarea id="postular-mensaje" maxlength="1000" rows="3" placeholder="Contale tu experiencia, si contás con productos propios y tu disponibilidad."></textarea>
+          </div>
+          <div class="fila" style="justify-content:flex-end; gap:8px;">
+            <button type="button" class="btn btn-borde" id="btn-cerrar-postular">Cancelar</button>
+            <button type="submit" class="btn" id="btn-confirmar-postular">Enviar cotización</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal para ver postulaciones recibidas (Clientes) -->
+    <div class="modal-envoltorio oculto" id="modal-postulaciones">
+      <div class="modal panel" style="max-width:680px; width:95%;">
+        <h2>Ofertas recibidas</h2>
+        <p class="muted" id="modal-postulaciones-subtitulo"></p>
+        <div id="lista-postulaciones-recibidas" style="max-height:400px; overflow-y:auto; margin:14px 0;">
+          <p class="muted">Cargando ofertas…</p>
+        </div>
+        <div class="fila" style="justify-content:flex-end;">
+          <button type="button" class="btn btn-borde" id="btn-cerrar-ver-postulaciones">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/anuncios.js"></script>
+</body>
+</html>

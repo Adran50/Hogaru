@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Crear cuenta — Hogaru</title>
+  <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+  <link rel="stylesheet" href="../estilos.css">
+</head>
+<body data-raiz="../">
+  <div id="navbar"></div>
+  <main class="contenedor medio">
+    <div class="panel">
+      <h1>Crear cuenta</h1>
+      <div class="tabs" role="radiogroup" aria-label="Tipo de cuenta">
+        <button type="button" class="chip activo" id="tipo-cliente">Quiero contratar un servicio</button>
+        <button type="button" class="chip" id="tipo-prestador">Quiero ofrecer mis servicios</button>
+      </div>
+      <div id="aviso" class="oculto"></div>
+      <form id="form-registro">
+        <div class="grilla-2">
+          <div class="campo"><label for="nombre">Nombre</label><input id="nombre" required maxlength="60"></div>
+          <div class="campo"><label for="apellido">Apellido</label><input id="apellido" required maxlength="60"></div>
+        </div>
+        <div class="grilla-2">
+          <div class="campo"><label for="email">Email</label><input type="email" id="email" required autocomplete="username"></div>
+          <div class="campo"><label for="telefono">Teléfono</label><input id="telefono" maxlength="30"></div>
+        </div>
+        <div class="campo">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" required minlength="8" maxlength="72" autocomplete="new-password">
+          <div class="ayuda">Mínimo 8 caracteres.</div>
+        </div>
+        <div class="campo" id="campo-direccion"><label for="direccion">Dirección (para tus servicios)</label><input id="direccion" maxlength="200" placeholder="Calle y número, localidad"></div>
+        <div class="campo oculto" id="campo-descripcion"><label for="descripcion">Contanos tu experiencia</label><textarea id="descripcion" maxlength="2000"></textarea></div>
+        
+        <!-- Documentación requerida para prestadores: DNI (Frente y Dorso) y Antecedentes -->
+        <div class="oculto" id="seccion-docs-prestador" style="margin-top:14px; border-top:1px solid var(--borde); padding-top:12px">
+          <label style="font-weight:600; margin-bottom:8px; display:block">Documentación para verificación (podés adjuntarla ahora o luego en tu panel):</label>
+          <div class="grilla-2">
+            <div class="campo">
+              <label for="doc-dni-frente">1a. DNI Frente (Foto o PDF)</label>
+              <input type="file" id="doc-dni-frente" accept=".pdf,image/jpeg,image/png">
+            </div>
+            <div class="campo">
+              <label for="doc-dni-dorso">1b. DNI Dorso (Foto o PDF)</label>
+              <input type="file" id="doc-dni-dorso" accept=".pdf,image/jpeg,image/png">
+            </div>
+          </div>
+          <div class="campo" style="margin-top:8px">
+            <label for="doc-antecedentes">2. Certificado de Antecedentes Penales (PDF o imagen)</label>
+            <input type="file" id="doc-antecedentes" accept=".pdf,image/jpeg,image/png">
+          </div>
+          <div class="ayuda">Si tu DNI está en un solo archivo con frente y dorso juntos, podés adjuntarlo únicamente en "DNI Frente". Se aceptan PDF, JPG y PNG hasta 10 MB.</div>
+        </div>
+
+        <div class="aviso aviso-info oculto" id="info-prestador" style="margin-top:12px">Un administrador revisará tu DNI y antecedentes penales antes de que puedas publicar servicios o postularte a la bolsa de trabajos.</div>
+        <button class="btn btn-ancho" type="submit" id="btn" style="margin-top:16px">Crear cuenta</button>
+      </form>
+      <p class="muted" style="margin-top:14px">¿Ya tenés cuenta? <a href="login.html">Ingresá</a></p>
+    </div>
+  </main>
+  <script src="../js/config.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/ui.js"></script>
+  <script src="../js/registro.js"></script>
+</body>
+</html>
