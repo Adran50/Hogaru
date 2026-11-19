@@ -12,43 +12,60 @@ Proyecto de Prácticas Profesionalizantes (7° año, E.E.S.T. N°6).
 
 ---
 
-## 🚀 Puesta en Marcha Rápida
+## 🚀 Puesta en Marcha Rápida (Sin Entorno Virtual)
 
-### 1. Requisitos Previos
-- Python 3.10 o superior instalado
-- Servidor MySQL 8 o MariaDB en ejecución
-- Base de datos `hogaru` creada (o permisos para crearla)
+Ya no es necesario crear ni activar entornos virtuales (`.venv`). El sistema corre directamente con tu Python 3.10+ global.
 
-### 2. Configuración del Entorno Virtual y Dependencias
-Desde la terminal en la carpeta `backend/`:
+### 1. Iniciar con un solo comando (Recomendado)
+Desde la **raíz del proyecto**, simplemente ejecutá:
 ```bash
-# Crear el entorno virtual
-python -m venv .venv
-
-# Activar el entorno virtual
-# En Windows (PowerShell):
-.venv\Scripts\activate
-# En Linux/macOS:
-source .venv/bin/activate
-
-# Instalar dependencias
-pip install -r requirements.txt
+python run.py
 ```
+O hacé doble clic en el archivo **`iniciar.bat`** (en Windows).
+
+> **¿Qué hace `python run.py` automáticamente?**
+> - Comprueba la conexión con MySQL y aplica de forma automática cualquier migración pendiente.
+> - Inicia Uvicorn con **auto-recarga activada** (`reload=True`) ante cualquier cambio de código.
+> - Sirve tanto la **API REST** como el **Frontend web** en el puerto 8000.
+> - **API y Web**: <http://127.0.0.1:8000>
+> - **Swagger Docs**: <http://127.0.0.1:8000/docs>
+> - **ReDoc**: <http://127.0.0.1:8000/redoc>
+
+---
+
+### 2. Comandos Administrativos desde `backend/`
+
+Si preferís gestionar el servidor o la base de datos de forma granular desde la carpeta `backend/`:
+
+```bash
+# Iniciar el servidor API con auto-recarga
+python manage.py servidor
+
+# Aplicar migraciones versionadas de base de datos
+python manage.py migrar
+
+# Cargar los datos de prueba iniciales (seed)
+python manage.py seed
+
+# Asignar la contraseña 'hogaru123' a todos los usuarios demo
+python manage.py passwords-demo
+
+# Crear un nuevo administrador
+python manage.py crear-admin admin@ejemplo.com tuPassword123 Admin Hogaru
+```
+
+---
 
 ### 3. Configuración de Variables de Entorno (`.env`)
-Copiar el archivo de ejemplo y configurar las credenciales de MySQL:
-```bash
-cp .env.example .env
-```
-Contenido del archivo `.env`:
+El proyecto incluye la plantilla `backend/.env.example`. Podés copiarla a `backend/.env` si necesitás cambiar tus credenciales de MySQL o el puerto:
 ```ini
 DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=tu_password
+DB_PASSWORD=
 DB_NAME=hogaru
 
-JWT_SECRET=tu-clave-secreta-larga-para-produccion
+JWT_SECRET=hogaru-secreto-super-seguro-cambiar-en-produccion
 JWT_HORAS=12
 
 COMISION_PLATAFORMA=0.10
@@ -56,34 +73,13 @@ MOMENTO_PAGO=flexible
 CORS_ORIGINS=*
 ```
 
-### 4. Inicialización de la Base de Datos y Migraciones
-
-Podés inicializar la base de datos de dos formas:
-
-#### Opción A (Recomendada con `manage.py`):
-```bash
-# Aplicar migraciones versionadas (crea esquema, tablas, índices y vistas)
-python manage.py migrar
-
-# Poblar con datos de prueba iniciales (seed completo)
-python manage.py seed
-```
-
-#### Opción B (Consola MySQL):
-```bash
-mysql -u root -p < ../base_de_datos/hogaru_schema.sql
-mysql -u root -p < ../base_de_datos/hogaru_datos_prueba.sql
-```
-
-### 5. Levantar el Servidor de Desarrollo
-```bash
-uvicorn app.main:app --reload
-```
-- API en ejecución: **http://localhost:8000**
-- Documentación Swagger interactiva: **http://localhost:8000/docs**
-- Documentación ReDoc: **http://localhost:8000/redoc**
-
 ---
+
+### 4. Instalación de Dependencias (si clonás en una máquina nueva)
+Si ejecutás el proyecto en una computadora nueva:
+```bash
+pip install -r requirements.txt
+```
 
 ## 👥 Usuarios de Prueba Preconfigurados
 
@@ -112,55 +108,68 @@ Todos los usuarios del seed vienen con la contraseña **`hogaru123`** lista para
 - `POST /auth/cambiar-password`: Cambio de contraseña validando la anterior
 
 ### 2. Verificación de Prestadores (`/api/v1/verificacion`)
-- `POST /verificacion/documentos`: Prestador sube DNI o antecedentes con prechequeo automático (`BackgroundCheckProvider`)
-- `GET /verificacion/documentos`: Lista de documentos presentados y estado
+- `POST /verificacion/subir`: Carga física multipart (`UploadFile`) de DNI (Frente y Dorso) y Antecedentes Penales en PDF o imagen (.jpg, .png) hasta 10 MB, sanitizado con UUIDv4.
+- `POST /verificacion/documentos`: Prestador sube enlace/documento con prechequeo automático (`BackgroundCheckProvider`).
+- `GET /verificacion/documentos`: Lista de documentos presentados y estado de auditoría.
 
 ### 3. Catálogo y Búsqueda de Servicios (`/api/v1/servicios`)
-- `GET /categorias`: Listado de categorías de servicio
-- `GET /servicios`: Búsqueda multicriterio con **Haversine** (`lat`, `lng`, `radio_km`), rango de tarifa (`tarifa_min`, `tarifa_max`), puntuación (`puntuacion_min`), día/horario (`dia_semana`, `hora`), paginación y orden
-- `GET /servicios/{id}`: Detalle de servicio y agenda semanal formateada en `HH:MM`
-- `POST /servicios`: Prestador aprobado publica nuevo servicio y disponibilidad
-- `GET /mis-servicios`: Servicios propios del prestador
-- `PATCH /servicios/{id}`: Modificación de tarifa, descripción o pausa/reactivación
-- `PUT /servicios/{id}/disponibilidad`: Reemplazo integral de disponibilidad semanal
+- `GET /categorias`: Listado de categorías activas con iconos.
+- `POST /categorias/sugerir`: Sugerencia colaborativa de nuevo oficio/categoría por clientes o prestadores (estado 'propuesta').
+- `GET /servicios`: Búsqueda multicriterio con **Haversine** (`lat`, `lng`, `radio_km`), rango de tarifa (`tarifa_min`, `tarifa_max`), puntuación (`puntuacion_min`), día/horario (`dia_semana`, `hora`), paginación y orden.
+- `GET /servicios/{id}`: Detalle de servicio y agenda semanal formateada en `HH:MM`.
+- `POST /servicios`: Prestador aprobado publica nuevo servicio y disponibilidad.
+- `GET /mis-servicios`: Servicios propios del prestador.
+- `PATCH /servicios/{id}`: Modificación de tarifa, descripción o pausa/reactivación.
+- `PUT /servicios/{id}/disponibilidad`: Reemplazo integral de disponibilidad semanal.
 
-### 4. Contrataciones y Agenda (`/api/v1/solicitudes`)
-- `POST /solicitudes`: Cliente solicita turno (valida fecha futura y horario disponible)
-- `GET /solicitudes`: Listado de solicitudes del usuario (o todas si es admin)
-- `GET /solicitudes/{id}`: Detalle de la contratación
-- `POST /solicitudes/{id}/aceptar`: Prestador aprobado acepta (valida superposiciones horarias)
-- `POST /solicitudes/{id}/rechazar`: Prestador rechaza solicitud pendiente
-- `POST /solicitudes/{id}/iniciar`: Prestador marca inicio del trabajo
-- `POST /solicitudes/{id}/finalizar`: Prestador finaliza el servicio
-- `POST /solicitudes/{id}/cancelar`: Cancelación por cliente, prestador o admin (reembolso automático si estaba pagado)
+### 4. Bolsa de Trabajos / Marketplace Inverso (`/api/v1/anuncios`)
+- `POST /anuncios`: Cliente publica un aviso con presupuesto ofrecido, fecha, duración y dirección.
+- `GET /anuncios`: Lista de avisos activos en la Bolsa de Trabajos para prestadores.
+- `GET /anuncios/mis-anuncios`: Avisos publicados por el cliente autenticado.
+- `POST /anuncios/{id}/postular`: Prestador verificado postula una cotización y propuesta técnica.
+- `GET /anuncios/{id}/postulaciones`: Cliente visualiza las ofertas recibidas.
+- `POST /anuncios/{id}/adjudicar/{id_postulacion}`: Cliente adjudica la propuesta ganadora y formaliza automáticamente la solicitud.
 
-### 5. Pagos Simulados (`/api/v1/solicitudes/{id}/pago`)
-- `POST /solicitudes/{id}/pago`: Cliente abona a través de `PaymentGateway` con cálculo de comisión configurable
-- `GET /solicitudes/{id}/pago`: Consulta del pago registrado
+### 5. Contrataciones y Agenda (`/api/v1/solicitudes`)
+- `POST /solicitudes`: Cliente solicita turno directo (valida fecha futura y horario disponible).
+- `GET /solicitudes`: Listado de solicitudes del usuario (o todas si es admin).
+- `GET /solicitudes/{id}`: Detalle de la contratación.
+- `POST /solicitudes/{id}/aceptar`: Prestador aprobado acepta (valida superposiciones horarias).
+- `POST /solicitudes/{id}/rechazar`: Prestador rechaza solicitud pendiente.
+- `POST /solicitudes/{id}/iniciar`: Prestador marca inicio del trabajo.
+- `POST /solicitudes/{id}/finalizar`: Prestador finaliza el servicio.
+- `POST /solicitudes/{id}/cancelar`: Cancelación por cliente, prestador o admin (reembolso automático si estaba pagado).
 
-### 6. Calificaciones y Reputación (`/api/v1/calificaciones`)
-- `POST /solicitudes/{id}/calificacion`: Cliente califica servicio finalizado y pagado (recalcula `puntuacion_promedio` del prestador en capa de servicio)
-- `GET /prestadores/{id}/calificaciones`: Reputación pública y desglose de reseñas
+### 6. Pagos Desacoplados estilo Mercado Pago (`/api/v1/solicitudes/{id}/pago`)
+- `POST /solicitudes/{id}/pago`: Cliente abona en 1 solo clic mediante pasarela desacoplada (Modo Sandbox) con cálculo de comisión (10%) y opción de simular rechazo (`simular_fallo: true`).
+- `GET /solicitudes/{id}/pago`: Consulta del pago registrado y referencia emitida.
 
-### 7. Disputas y Mediación (`/api/v1/solicitudes/{id}/disputas`)
-- `POST /solicitudes/{id}/disputas`: Apertura de reclamo sobre solicitud aceptada/en curso/finalizada
-- `GET /solicitudes/{id}/disputas`: Historial de reclamos de una solicitud
+### 7. Calificaciones y Reputación (`/api/v1/calificaciones`)
+- `POST /solicitudes/{id}/calificacion`: Cliente califica servicio finalizado y pagado (recalcula `puntuacion_promedio` del prestador en capa de servicio).
+- `GET /prestadores/{id}/calificaciones`: Reputación pública y desglose de reseñas.
 
-### 8. Notificaciones y Chat de Trabajo
-- `GET /api/v1/notificaciones`: Bandeja de notificaciones y conteo de no leídas
-- `POST /api/v1/notificaciones/leer-todas`: Marcar todas como leídas
-- `POST /api/v1/notificaciones/{id}/leer`: Marcar notificación individual
-- `POST /api/v1/solicitudes/{id}/mensajes`: Chat directo entre cliente y prestador
-- `GET /api/v1/solicitudes/{id}/mensajes`: Historial de conversación
+### 8. Disputas y Arbitraje (`/api/v1/solicitudes/{id}/disputas`)
+- `POST /solicitudes/{id}/disputas`: Apertura de reclamo sobre solicitud aceptada/en curso/finalizada.
+- `GET /solicitudes/{id}/disputas`: Historial de reclamos de una solicitud.
 
-### 9. Administración (`/api/v1/admin`)
-- `GET /admin/documentos`: Cola de documentos pendientes con prechequeo de antecedentes
-- `POST /admin/documentos/{id}/resolver`: Admin aprueba o rechaza con motivo (recalcula verificación)
-- `GET /admin/disputas`: Listado de reclamos de la plataforma
-- `PATCH /admin/disputas/{id}`: Admin pasa a revisión o resuelve con opción de reembolso
-- `GET /admin/usuarios`: Listado de usuarios con filtro por rol
-- `PATCH /admin/usuarios/{id}/estado`: Suspensión o reactivación de cuentas
-- `GET /admin/metricas`: Métricas globales (solicitudes por estado, finanzas, comisiones acumuladas, usuarios y prestadores)
+### 9. Notificaciones y Chat de Trabajo
+- `GET /api/v1/notificaciones`: Bandeja de notificaciones y conteo de no leídas.
+- `POST /api/v1/notificaciones/leer-todas`: Marcar todas como leídas.
+- `POST /api/v1/notificaciones/{id}/leer`: Marcar notificación individual.
+- `POST /api/v1/solicitudes/{id}/mensajes`: Chat directo entre cliente y prestador.
+- `GET /api/v1/solicitudes/{id}/mensajes`: Historial de conversación.
+
+### 10. Administración (`/api/v1/admin`)
+- `GET /admin/documentos`: Cola de documentos pendientes con prechequeo de antecedentes.
+- `POST /admin/documentos/{id}/resolver`: Admin aprueba o rechaza DNI / antecedentes (recalcula verificación).
+- `GET /admin/categorias`: Listado de categorías y propuestas de usuarios.
+- `POST /admin/categorias`: Creación de nuevas categorías por el admin.
+- `POST /admin/categorias/{id}/aprobar`: Aprobación y activación de categorías propuestas.
+- `GET /admin/disputas`: Listado de reclamos de la plataforma.
+- `PATCH /admin/disputas/{id}`: Admin pasa a revisión o resuelve con opción de reembolso.
+- `GET /admin/usuarios`: Listado de usuarios con filtro por rol.
+- `PATCH /admin/usuarios/{id}/estado`: Suspensión o reactivación de cuentas.
+- `GET /admin/metricas`: Métricas globales (solicitudes por estado, finanzas, comisiones acumuladas, usuarios y prestadores).
 
 ---
 

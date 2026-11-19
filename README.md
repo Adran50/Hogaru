@@ -11,6 +11,8 @@ App web (responsive, Mobile First) para contratar servicios de limpieza domésti
 ## Estructura
 ```
 Hogaru/
+├─ run.py                  script de inicio rápido unificado (migraciones + uvicorn)
+├─ iniciar.bat             acceso directo para iniciar el proyecto en Windows
 ├─ index.html              página de inicio (buscador, destacados, acceso a la bolsa)
 ├─ estilos.css             estilos compartidos de todas las páginas
 ├─ Hogaru_Informe_Requerimientos_y_Etapas.docx   informe técnico completo por etapas
@@ -38,14 +40,34 @@ Hogaru/
    └─ hogaru_schema.sql
 ```
 
-## Cómo correrlo
-1. **Base y API:**
-   * Cargar base o correr migraciones: `python manage.py migrar`
-   * Instalar dependencias: `pip install -r backend/requirements.txt`
-   * Iniciar servidor API: `uvicorn app.main:app --reload` (desde la carpeta `backend`)
-   * Clave demo para usuarios de prueba: `python manage.py passwords-demo` (clave `hogaru123`).
-2. **Frontend:** Servilo con un servidor estático desde la raíz:
-   `python -m http.server 5500` y abrir <http://localhost:5500>, o la extensión *Live Server* de VS Code.
+## Cómo correrlo (Inicio Rápido)
+
+Ya no es necesario crear ni activar entornos virtuales. Tu Python del sistema ejecuta todo directamente.
+
+### Opción 1: Un solo comando (Recomendada)
+Desde la terminal en la raíz del proyecto:
+```bash
+python run.py
+```
+> **¿Qué hace automáticamente `python run.py`?**
+> 1. Conecta con MySQL y aplica de forma automática cualquier migración pendiente.
+> 2. Inicia el servidor con **auto-recarga activada** (`reload=True`), de modo que ante cualquier cambio de código el servidor se actualiza solo.
+> 3. Sirve tanto la **API REST** como el **Frontend web** en el mismo puerto:
+>    - 🌐 **Aplicación Web:** <http://127.0.0.1:8000>
+>    - 📘 **Documentación Swagger:** <http://127.0.0.1:8000/docs>
+>    - 📕 **ReDoc:** <http://127.0.0.1:8000/redoc>
+
+### Opción 2: Doble clic en Windows
+Hacé doble clic en el archivo **`iniciar.bat`** en la carpeta principal del proyecto.
+
+### Opción 3: Comandos tradicionales con `manage.py`
+Si preferís ejecutar comandos individuales desde la carpeta `backend/`:
+```bash
+python manage.py servidor    # Inicia Uvicorn con auto-recarga
+python manage.py migrar      # Aplica migraciones versionadas
+python manage.py seed        # Carga datos de prueba
+python manage.py passwords-demo  # Asigna 'hogaru123' a todos los usuarios demo
+```
 
 Usuarios de ejemplo: `carla@hogaru.test` (cliente), `marisa@hogaru.test` y `roberto@hogaru.test` (prestadores), `admin@hogaru.test` (administrador). Clave: `hogaru123`.
 
