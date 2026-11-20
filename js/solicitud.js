@@ -56,7 +56,8 @@
     return '<div class="panel"><div class="fila-entre"><h1>' + esc(sol.servicio) + ' <span class="muted" style="font-size:1rem">#' + sol.id_solicitud + '</span></h1>' + badge(sol.estado) + '</div>' +
       linea +
       '<div class="datos" style="margin-top:14px">' +
-      dato('Cliente', esc(sol.cliente)) + dato('Prestador', esc(sol.prestador)) +
+      dato('Cliente', '<div style="display:flex;align-items:center;gap:8px">' + renderAvatar(sol.cliente_foto, sol.cliente, 28) + '<span>' + esc(sol.cliente) + '</span></div>') +
+      dato('Prestador', '<div style="display:flex;align-items:center;gap:8px">' + renderAvatar(sol.prestador_foto, sol.prestador, 28) + '<span>' + esc(sol.prestador) + '</span></div>') +
       dato('Fecha y hora', fechaHora(sol.fecha_hora_programada)) + dato('Duración', sol.duracion_horas + ' hs') +
       dato('Dirección', esc(sol.direccion_trabajo)) + dato('Tarifa', peso(sol.tarifa) + ' / hora') +
       dato('Total', '<strong>' + peso(sol.monto_estimado) + '</strong>') + '</div>' +

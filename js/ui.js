@@ -38,6 +38,15 @@ function fechaCorta(iso) {
 function iniciales(nombre) {
   return String(nombre || '?').split(' ').filter(Boolean).slice(0, 2).map(function (p) { return p[0].toUpperCase(); }).join('');
 }
+function renderAvatar(fotoUrl, nombre, tamano) {
+  var t = tamano || 44;
+  var nom = nombre || 'Usuario';
+  if (fotoUrl) {
+    var url = fotoUrl.startsWith('http') ? fotoUrl : (API_URL + fotoUrl);
+    return '<img src="' + esc(url) + '" alt="' + esc(nom) + '" class="avatar avatar-img" style="width:' + t + 'px;height:' + t + 'px;border-radius:50%;object-fit:cover;display:inline-block">';
+  }
+  return '<div class="avatar" style="width:' + t + 'px;height:' + t + 'px;font-size:' + Math.max(12, Math.round(t * 0.36)) + 'px">' + esc(iniciales(nom)) + '</div>';
+}
 function param(nombre) { return new URLSearchParams(location.search).get(nombre); }
 function badge(estado) {
   return '<span class="badge badge-' + esc(estado) + '">' + esc(ETIQUETAS_ESTADO[estado] || estado) + '</span>';
@@ -137,11 +146,71 @@ function renderNavbar() {
 
   var derecha;
   if (u) {
+    var avatarHtml = renderAvatar(u.foto_perfil, u.nombre, 34);
+    var avatarHtmlLg = renderAvatar(u.foto_perfil, u.nombre, 44);
+    var rolLabel = u.tipo_cuenta === 'prestador'
+      ? 'Prestador de Servicios'
+      : (u.tipo_cuenta === 'administrador' ? 'Administrador' : 'Cliente');
+
+    var rolItemHtml = '';
+    if (u.tipo_cuenta === 'prestador') {
+      rolItemHtml =
+        '<a class="dropdown-item" href="' + P + 'panel-prestador.html">' +
+          '<span class="dropdown-item-icono">⚙️</span>' +
+          '<span class="dropdown-item-texto">Mi panel de prestador</span>' +
+        '</a>';
+    } else if (u.tipo_cuenta === 'administrador') {
+      rolItemHtml =
+        '<a class="dropdown-item" href="' + P + 'admin.html">' +
+          '<span class="dropdown-item-icono">🛡️</span>' +
+          '<span class="dropdown-item-texto">Panel de administración</span>' +
+        '</a>';
+    } else if (u.tipo_cuenta === 'cliente') {
+      rolItemHtml =
+        '<a class="dropdown-item" href="' + P + 'solicitudes.html">' +
+          '<span class="dropdown-item-icono">📋</span>' +
+          '<span class="dropdown-item-texto">Mis solicitudes</span>' +
+        '</a>';
+    }
+
     derecha =
-      '<a class="campana" href="' + P + 'notificaciones.html" title="Notificaciones">🔔<span class="globo oculto" id="globo"></span></a>' +
-      '<span class="nav-usuario">' + esc(u.nombre) + '</span>' +
       botonTema +
-      '<button class="btn btn-claro btn-chico" id="btn-salir">Salir</button>';
+      '<div class="nav-perfil-contenedor" id="nav-perfil-contenedor">' +
+        '<button type="button" class="btn-avatar-nav" id="btn-avatar-menu" title="Mi perfil y notificaciones" aria-haspopup="true" aria-expanded="false">' +
+          '<div class="avatar-globo-wrap">' +
+            avatarHtml +
+            '<span class="globo oculto" id="globo"></span>' +
+          '</div>' +
+          '<span class="nav-usuario-nombre">' + esc(u.nombre) + '</span>' +
+          '<span class="nav-flecha-menu" aria-hidden="true">▾</span>' +
+        '</button>' +
+        '<div class="dropdown-perfil oculto" id="dropdown-perfil" role="menu">' +
+          '<div class="dropdown-header">' +
+            '<div class="dropdown-avatar-preview">' + avatarHtmlLg + '</div>' +
+            '<div class="dropdown-datos">' +
+              '<strong class="dropdown-nombre">' + esc(u.nombre) + ' ' + esc(u.apellido || '') + '</strong>' +
+              '<span class="dropdown-rol">' + esc(rolLabel) + '</span>' +
+              (u.email ? '<span class="dropdown-email">' + esc(u.email) + '</span>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="dropdown-separador"></div>' +
+          '<a class="dropdown-item" href="' + P + 'notificaciones.html" id="dropdown-item-notificaciones">' +
+            '<span class="dropdown-item-icono">🔔</span>' +
+            '<span class="dropdown-item-texto">Notificaciones</span>' +
+            '<span class="dropdown-globo oculto" id="dropdown-globo">0</span>' +
+          '</a>' +
+          '<button type="button" class="dropdown-item" id="dropdown-btn-cambiar-foto">' +
+            '<span class="dropdown-item-icono">📷</span>' +
+            '<span class="dropdown-item-texto">Cambiar foto de perfil</span>' +
+          '</button>' +
+          rolItemHtml +
+          '<div class="dropdown-separador"></div>' +
+          '<button type="button" class="dropdown-item dropdown-item-salir" id="btn-salir">' +
+            '<span class="dropdown-item-icono">🚪</span>' +
+            '<span class="dropdown-item-texto">Cerrar sesión</span>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
   } else {
     derecha =
       botonTema +
@@ -158,6 +227,26 @@ function renderNavbar() {
     '</a>' +
     '<nav class="nav-links">' + linksHtml + '</nav>' +
     '<div class="nav-derecha">' + derecha + '</div></div>';
+
+  var btnAvatar = document.getElementById('btn-avatar-menu');
+  var dropPerfil = document.getElementById('dropdown-perfil');
+  if (btnAvatar && dropPerfil) {
+    btnAvatar.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var abriendo = dropPerfil.classList.contains('oculto');
+      dropPerfil.classList.toggle('oculto');
+      btnAvatar.setAttribute('aria-expanded', abriendo ? 'true' : 'false');
+    });
+  }
+
+  var btnCambiarFoto = document.getElementById('dropdown-btn-cambiar-foto');
+  if (btnCambiarFoto) {
+    btnCambiarFoto.addEventListener('click', function () {
+      if (dropPerfil) dropPerfil.classList.add('oculto');
+      if (btnAvatar) btnAvatar.setAttribute('aria-expanded', 'false');
+      abrirModalPerfil();
+    });
+  }
 
   var btnTema = document.getElementById('btn-tema');
   if (btnTema) {
@@ -176,19 +265,161 @@ function renderNavbar() {
     Sesion.cerrar();
     location.href = RAIZ + 'index.html';
   });
+
+  if (!window._dropdownPerfilHandlerRegistrado) {
+    window._dropdownPerfilHandlerRegistrado = true;
+    document.addEventListener('click', function (e) {
+      var wrap = document.getElementById('nav-perfil-contenedor');
+      var drop = document.getElementById('dropdown-perfil');
+      var btn = document.getElementById('btn-avatar-menu');
+      if (wrap && drop && !wrap.contains(e.target)) {
+        drop.classList.add('oculto');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        var drop = document.getElementById('dropdown-perfil');
+        var btn = document.getElementById('btn-avatar-menu');
+        if (drop && !drop.classList.contains('oculto')) {
+          drop.classList.add('oculto');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+  }
+
   if (u) {
     actualizarGlobo();
-    setInterval(actualizarGlobo, 30000);
+    if (window._intervalGlobo) clearInterval(window._intervalGlobo);
+    window._intervalGlobo = setInterval(actualizarGlobo, 30000);
   }
 }
 async function actualizarGlobo() {
   var globo = document.getElementById('globo');
-  if (!globo) return;
+  var dropGlobo = document.getElementById('dropdown-globo');
+  if (!globo && !dropGlobo) return;
   try {
     var r = await api('/notificaciones', { params: { limite: 1 } });
-    globo.textContent = r.no_leidas > 99 ? '99+' : r.no_leidas;
-    globo.classList.toggle('oculto', r.no_leidas === 0);
+    var count = r.no_leidas || 0;
+    var txt = count > 99 ? '99+' : String(count);
+    if (globo) {
+      globo.textContent = txt;
+      globo.classList.toggle('oculto', count === 0);
+    }
+    if (dropGlobo) {
+      dropGlobo.textContent = txt;
+      dropGlobo.classList.toggle('oculto', count === 0);
+    }
   } catch (e) { /* si falla, no se muestra el contador */ }
+}
+
+// ---------- modal de perfil de usuario ----------
+function abrirModalPerfil() {
+  var u = Sesion.usuario();
+  if (!u) return;
+  var idModal = 'modal-mi-perfil-global';
+  var modal = document.getElementById(idModal);
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = idModal;
+    modal.className = 'modal-envoltorio oculto';
+    modal.innerHTML =
+      '<div class="modal panel" style="max-width:440px; width:95%;">' +
+        '<div class="fila-entre" style="margin-bottom:12px">' +
+          '<h2 style="margin:0">Mi Perfil</h2>' +
+          '<button type="button" class="btn btn-borde btn-chico" id="modal-perfil-cerrar">✕</button>' +
+        '</div>' +
+        '<div style="text-align:center; margin:16px 0;" id="modal-perfil-avatar-preview"></div>' +
+        '<h3 style="text-align:center; margin:0 0 4px;" id="modal-perfil-nombre-txt"></h3>' +
+        '<p class="muted" style="text-align:center; margin:0 0 16px; font-size:0.9rem;" id="modal-perfil-rol-txt"></p>' +
+        '<hr style="border:0; border-top:1px solid var(--borde); margin:16px 0">' +
+        '<h4 style="margin:0 0 8px; font-size:0.95rem">Foto de perfil</h4>' +
+        '<p class="muted" style="font-size:0.85rem; margin-top:0">Subí una foto en formato JPG, PNG o WebP (máx 10 MB).</p>' +
+        '<form id="form-modal-foto-perfil">' +
+          '<input type="file" id="modal-input-foto" accept="image/jpeg,image/png,image/webp" required style="width:100%; margin-bottom:12px">' +
+          '<div class="fila" style="gap:10px; justify-content:space-between">' +
+            '<button class="btn btn-claro btn-chico" type="submit" id="btn-modal-guardar-foto">Guardar foto</button>' +
+            '<button class="btn btn-borde btn-chico" type="button" id="btn-modal-quitar-foto" style="color:var(--peligro); border-color:var(--peligro)">Quitar foto</button>' +
+          '</div>' +
+        '</form>' +
+      '</div>';
+    document.body.appendChild(modal);
+
+    modal.querySelector('#modal-perfil-cerrar').addEventListener('click', function () {
+      modal.classList.add('oculto');
+    });
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) modal.classList.add('oculto');
+    });
+
+    var formFoto = modal.querySelector('#form-modal-foto-perfil');
+    formFoto.addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var input = modal.querySelector('#modal-input-foto');
+      var btn = modal.querySelector('#btn-modal-guardar-foto');
+      if (!input.files || !input.files[0]) {
+        toast('Elegí una imagen para subir.', true);
+        return;
+      }
+      var fd = new FormData();
+      fd.append('archivo', input.files[0]);
+      ocupado(btn, true);
+      try {
+        var res = await fetch(API_URL + '/auth/foto-perfil', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + Sesion.token() },
+          body: fd,
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Error al subir la imagen');
+        var user = Sesion.usuario();
+        user.foto_perfil = data.foto_perfil;
+        Sesion.guardar(Sesion.token(), user);
+        toast('¡Foto de perfil actualizada con éxito!');
+        input.value = '';
+        renderNavbar();
+        actualizarVistaModalPerfil();
+      } catch (err) {
+        toast(err.message, true);
+      } finally {
+        ocupado(btn, false);
+      }
+    });
+
+    var btnQuitar = modal.querySelector('#btn-modal-quitar-foto');
+    btnQuitar.addEventListener('click', async function () {
+      if (!confirm('¿Eliminar tu foto de perfil?')) return;
+      btnQuitar.disabled = true;
+      try {
+        await api('/auth/foto-perfil', { metodo: 'DELETE' });
+        var user = Sesion.usuario();
+        user.foto_perfil = null;
+        Sesion.guardar(Sesion.token(), user);
+        toast('Foto de perfil eliminada.');
+        renderNavbar();
+        actualizarVistaModalPerfil();
+      } catch (err) {
+        toast(err.message, true);
+      } finally {
+        btnQuitar.disabled = false;
+      }
+    });
+  }
+
+  function actualizarVistaModalPerfil() {
+    var curUser = Sesion.usuario();
+    if (!curUser) return;
+    modal.querySelector('#modal-perfil-avatar-preview').innerHTML = renderAvatar(curUser.foto_perfil, curUser.nombre, 84);
+    modal.querySelector('#modal-perfil-nombre-txt').textContent = (curUser.nombre || '') + ' ' + (curUser.apellido || '');
+    var rolLabel = curUser.tipo_cuenta === 'prestador' ? 'Prestador de Servicios' : (curUser.tipo_cuenta === 'administrador' ? 'Administrador' : 'Cliente');
+    modal.querySelector('#modal-perfil-rol-txt').textContent = rolLabel + (curUser.email ? ' · ' + curUser.email : '');
+    var btnQuitar = modal.querySelector('#btn-modal-quitar-foto');
+    if (btnQuitar) btnQuitar.style.display = curUser.foto_perfil ? 'inline-block' : 'none';
+  }
+
+  actualizarVistaModalPerfil();
+  modal.classList.remove('oculto');
 }
 
 // ---------- componentes reutilizables ----------
@@ -202,7 +433,7 @@ function tarjetaServicio(s) {
     : '';
   return '<a class="card" href="' + RAIZ + 'paginas/servicio.html?id=' + s.id_servicio + '">' +
     '<div class="card-top">' +
-      '<div class="avatar">' + esc(iniciales(s.nombre_publico)) + '</div>' +
+      renderAvatar(s.foto_perfil, s.nombre_publico, 48) +
       '<div>' +
         '<div class="nombre">' + esc(s.nombre_publico) + '</div>' +
         '<div class="rol">' + esc(s.categoria) + '</div>' +

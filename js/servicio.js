@@ -98,10 +98,42 @@
       '<button class="btn btn-ancho" type="submit" id="btn-solicitar">Solicitar servicio</button></form>' + btnWaConsulta;
   }
 
+  // Bloque: Acerca del prestador
+  var sobrePrestadorHtml = '';
+  if (servicio.biografia_prestador || servicio.zona_cobertura) {
+    sobrePrestadorHtml = '<div class="panel">' +
+      '<h2>Acerca de ' + esc(servicio.nombre_publico) + '</h2>' +
+      (servicio.biografia_prestador ? '<p style="margin:0 0 12px; line-height:1.5">' + esc(servicio.biografia_prestador) + '</p>' : '') +
+      '<div class="fila" style="gap:14px; margin-top:8px; font-size:0.9rem">' +
+        '<span class="badge badge-aprobado" style="padding:4px 10px">✔ Prestador Verificado en Hogaru</span>' +
+        (servicio.zona_cobertura ? '<span class="muted">📍 Zona: ' + esc(servicio.zona_cobertura) + '</span>' : '') +
+        '<span class="muted">⭐ ' + (Number(servicio.puntuacion_promedio) > 0 ? Number(servicio.puntuacion_promedio).toFixed(1) + ' (' + prom.total + ' opiniones)' : 'Nuevo') + '</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // Bloque: Otros servicios del mismo prestador
+  var otrosServiciosHtml = '';
+  if (servicio.otros_servicios && servicio.otros_servicios.length) {
+    otrosServiciosHtml = '<div class="panel">' +
+      '<h2>Más servicios de ' + esc(servicio.nombre_publico) + '</h2>' +
+      '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px; margin-top:12px">' +
+      servicio.otros_servicios.map(function (os) {
+        return '<a class="card" href="servicio.html?id=' + os.id_servicio + '" style="padding:14px; text-decoration:none; display:flex; flex-direction:column; justify-content:space-between">' +
+          '<div>' +
+            '<strong style="font-size:1.05rem; color:var(--verde-oscuro); display:block">' + esc(os.categoria) + '</strong>' +
+            (os.descripcion ? '<p class="muted" style="margin:6px 0 10px; font-size:0.85rem; line-height:1.4">' + esc(os.descripcion) + '</p>' : '') +
+          '</div>' +
+          '<div class="precio" style="font-size:1.1rem; margin-top:8px">' + peso(os.tarifa) + ' <span style="font-size:0.8rem; color:var(--gris)">/ hora</span></div>' +
+        '</a>';
+      }).join('') +
+      '</div></div>';
+  }
+
   contenido.innerHTML =
     '<div class="dos-col">' +
     '<div>' +
-      '<div class="panel"><div class="card-top"><div class="avatar" style="width:60px;height:60px;font-size:1.2rem">' + esc(iniciales(servicio.nombre_publico)) + '</div>' +
+      '<div class="panel"><div class="card-top">' + renderAvatar(servicio.foto_perfil, servicio.nombre_publico, 64) +
       '<div><h1 style="margin:0">' + esc(servicio.nombre_publico) + '</h1><div class="muted">' + esc(servicio.categoria) + ' · Prestador verificado ✔</div>' +
       (servicio.zona_cobertura ? '<div style="font-size:0.85rem;color:var(--gris);margin-top:3px">📍 Cobertura: ' + esc(servicio.zona_cobertura) + '</div>' : '') +
       '</div></div>' +
@@ -110,6 +142,8 @@
       '<div class="dato"><div class="etiqueta">Calificación</div><div class="valor">' + (Number(servicio.puntuacion_promedio) > 0 ? '★ ' + Number(servicio.puntuacion_promedio).toFixed(1) : 'Sin calificar') + '</div></div>' +
       '<div class="dato"><div class="etiqueta">Servicios realizados</div><div class="valor">' + servicio.servicios_realizados + '</div></div></div>' +
       detalleNotas + '</div>' +
+      sobrePrestadorHtml +
+      otrosServiciosHtml +
       galeriaHtml +
       '<div class="panel"><h2>Disponibilidad semanal</h2><div class="tabla-envoltorio"><table><tbody>' + filasHorario + '</tbody></table></div></div>' +
       '<div class="panel"><h2>Reseñas (' + prom.total + ')</h2>' + resenas + '</div>' +

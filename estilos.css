@@ -1390,3 +1390,306 @@ tr.fila-link:hover td {
 }
 
 
+
+/* ============================================================
+   MODALES Y VENTANAS EMERGENTES
+   ============================================================ */
+.modal-envoltorio {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+.modal-envoltorio.oculto {
+  display: none !important;
+}
+.modal {
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--sombra-xl);
+}
+.avatar-img {
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
+  display: inline-block;
+  flex-shrink: 0;
+}
+.btn-perfil-nav {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  transition: background 0.15s ease;
+  color: inherit;
+}
+.btn-perfil-nav:hover {
+  background: var(--verde-fondo);
+}
+
+/* ============================================================
+   AVATAR NAVBAR Y MENÚ DESPLEGABLE DE PERFIL
+   ============================================================ */
+.nav-perfil-contenedor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-avatar-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1.5px solid transparent;
+  padding: 3px 10px 3px 3px;
+  border-radius: var(--radio-pill);
+  cursor: pointer;
+  color: var(--texto-principal);
+  transition: all 0.2s ease;
+  font-family: inherit;
+  user-select: none;
+}
+.btn-avatar-nav:hover,
+.btn-avatar-nav[aria-expanded="true"] {
+  background: var(--verde-fondo);
+  border-color: var(--verde-borde);
+}
+
+.avatar-globo-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.avatar-globo-wrap .globo {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  background: var(--rojo);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  border-radius: var(--radio-pill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.45);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.nav-usuario-nombre {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--texto-principal);
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-flecha-menu {
+  font-size: 0.72rem;
+  color: var(--gris);
+  transition: transform 0.2s ease;
+}
+.btn-avatar-nav[aria-expanded="true"] .nav-flecha-menu {
+  transform: rotate(180deg);
+}
+
+.dropdown-perfil {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 275px;
+  background: var(--blanco);
+  border: 1px solid var(--gris-claro);
+  border-radius: 16px;
+  box-shadow: var(--sombra-xl);
+  padding: 10px;
+  z-index: 100;
+  animation: dropdownFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px 10px;
+}
+.dropdown-avatar-preview {
+  flex-shrink: 0;
+}
+.dropdown-datos {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+.dropdown-nombre {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--verde-oscuro);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+.dropdown-rol {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--verde-texto);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 3px;
+}
+.dropdown-email {
+  font-size: 0.8rem;
+  color: var(--gris);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.dropdown-separador {
+  height: 1px;
+  background: var(--gris-claro);
+  margin: 6px 0;
+  border: none;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radio-sm);
+  color: var(--texto-principal);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  box-sizing: border-box;
+}
+.dropdown-item:hover {
+  background: var(--verde-fondo);
+  color: var(--verde-texto);
+}
+.dropdown-item-icono {
+  font-size: 1.05rem;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.dropdown-item-texto {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dropdown-globo {
+  background: var(--rojo);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  border-radius: var(--radio-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+.dropdown-item-salir {
+  color: var(--rojo);
+}
+.dropdown-item-salir:hover {
+  background: var(--rojo-fondo);
+  color: var(--rojo);
+}
+
+/* Modo oscuro para avatar y dropdown */
+[data-tema="oscuro"] .btn-avatar-nav:hover,
+[data-tema="oscuro"] .btn-avatar-nav[aria-expanded="true"] {
+  background: rgba(6, 78, 59, 0.4);
+  border-color: #047857;
+}
+[data-tema="oscuro"] .avatar-globo-wrap .globo {
+  border-color: #151f32;
+}
+[data-tema="oscuro"] .dropdown-perfil {
+  background: #151f32;
+  border-color: #334155;
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.7);
+}
+[data-tema="oscuro"] .dropdown-separador {
+  background: #334155;
+}
+[data-tema="oscuro"] .dropdown-item {
+  color: #f1f5f9;
+}
+[data-tema="oscuro"] .dropdown-item:hover {
+  background: rgba(6, 78, 59, 0.35);
+  color: #a7f3d0;
+}
+[data-tema="oscuro"] .dropdown-item-salir {
+  color: #fda4af;
+}
+[data-tema="oscuro"] .dropdown-item-salir:hover {
+  background: rgba(225, 29, 72, 0.2);
+  color: #fecdd3;
+}
+
+@media (max-width: 640px) {
+  .nav-usuario-nombre,
+  .nav-flecha-menu {
+    display: none;
+  }
+  .btn-avatar-nav {
+    padding: 2px;
+  }
+  .dropdown-perfil {
+    right: -10px;
+    max-width: calc(100vw - 28px);
+  }
+}

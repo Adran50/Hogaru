@@ -265,6 +265,75 @@
     } catch (err) { toast(err.message, true); }
   });
 
+  // ===== Foto de Perfil =====
+  async function cargarFotoPerfilPanel() {
+    var preview = document.getElementById('vista-previa-foto-prestador');
+    if (!preview) return;
+    try {
+      var yo = await api('/auth/me');
+      preview.innerHTML = renderAvatar(yo.foto_perfil, yo.nombre, 90);
+      var btnQuitar = document.getElementById('btn-eliminar-foto-panel');
+      if (btnQuitar) btnQuitar.style.display = yo.foto_perfil ? 'inline-block' : 'none';
+    } catch (e) { /* silencioso */ }
+  }
+
+  var formFotoPanel = document.getElementById('form-foto-perfil-panel');
+  if (formFotoPanel) {
+    formFotoPanel.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var input = document.getElementById('input-foto-perfil-panel');
+      var btn = document.getElementById('btn-subir-foto-panel');
+      if (!input || !input.files || !input.files[0]) {
+        toast('Seleccioná una foto para subir.', true);
+        return;
+      }
+      var fd = new FormData();
+      fd.append('archivo', input.files[0]);
+      ocupado(btn, true);
+      try {
+        var res = await fetch(API_URL + '/auth/foto-perfil', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + Sesion.token() },
+          body: fd,
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Error al subir la foto');
+        var u = Sesion.usuario();
+        u.foto_perfil = data.foto_perfil;
+        Sesion.guardar(Sesion.token(), u);
+        toast('¡Foto de perfil actualizada con éxito!');
+        input.value = '';
+        await cargarFotoPerfilPanel();
+        renderNavbar();
+      } catch (err) {
+        toast(err.message, true);
+      } finally {
+        ocupado(btn, false);
+      }
+    });
+  }
+
+  var btnEliminarFotoPanel = document.getElementById('btn-eliminar-foto-panel');
+  if (btnEliminarFotoPanel) {
+    btnEliminarFotoPanel.addEventListener('click', async function () {
+      if (!confirm('¿Seguro que querés quitar tu foto de perfil?')) return;
+      btnEliminarFotoPanel.disabled = true;
+      try {
+        await api('/auth/foto-perfil', { metodo: 'DELETE' });
+        var u = Sesion.usuario();
+        u.foto_perfil = null;
+        Sesion.guardar(Sesion.token(), u);
+        toast('Foto de perfil eliminada.');
+        await cargarFotoPerfilPanel();
+        renderNavbar();
+      } catch (err) {
+        toast(err.message, true);
+      } finally {
+        btnEliminarFotoPanel.disabled = false;
+      }
+    });
+  }
+
   // ===== Zona de Cobertura =====
   async function cargarZona() {
     try {
@@ -387,6 +456,7 @@
   async function iniciar() {
     try {
       await cargarCategoriasSelect();
+      await cargarFotoPerfilPanel();
       await cargarVerificacion();
       await cargarServicios();
       await cargarZona();

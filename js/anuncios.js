@@ -69,7 +69,10 @@
               '<span class="badge">' + esc(a.icono || '🧹') + ' ' + esc(a.categoria) + '</span>' +
               '<h3 style="margin:6px 0 2px 0">' + esc(a.titulo) + '</h3>' +
               '<div class="anuncio-meta">' +
-                '<span>👤 ' + esc(a.cliente_nombre) + '</span>' +
+                '<span style="display:inline-flex; align-items:center; gap:6px;">' +
+                  renderAvatar(a.cliente_foto, a.cliente_nombre, 22) +
+                  ' ' + esc(a.cliente_nombre) +
+                '</span>' +
                 '<span>📍 ' + esc(a.direccion) + '</span>' +
                 '<span>📅 ' + fechaHora(a.fecha_servicio) + ' (' + a.duracion_horas + ' hs)</span>' +
                 '<span>📩 ' + a.total_postulaciones + ' oferta' + (a.total_postulaciones === 1 ? '' : 's') + '</span>' +
@@ -279,12 +282,15 @@
           ? '<span class="badge badge-aprobado">Aceptada</span>'
           : '<button class="btn btn-chico btn-adjudicar" data-anuncio="' + idAnuncio + '" data-postulacion="' + o.id_postulacion + '">Aceptar y contratar</button>';
 
-        return '<div class="postulacion-item">' +
-          '<div>' +
-            '<strong>' + esc(o.nombre) + ' ' + esc(o.apellido) + '</strong> ' +
-            '<span style="font-size:0.85rem; color:var(--texto-secundario)">(' + estrellas + ')</span>' +
-            '<div style="font-size:0.9rem; margin-top:4px">' + esc(o.mensaje || 'Sin mensaje adicional.') + '</div>' +
-            '<div style="font-size:0.8rem; color:var(--texto-secundario); margin-top:4px">Enviada: ' + fechaCorta(o.fecha_postulacion) + '</div>' +
+        return '<div class="postulacion-item" style="display:flex; justify-content:space-between; align-items:center; gap:12px">' +
+          '<div style="display:flex; align-items:center; gap:12px">' +
+            renderAvatar(o.foto_perfil, o.nombre + ' ' + o.apellido, 40) +
+            '<div>' +
+              '<strong>' + esc(o.nombre) + ' ' + esc(o.apellido) + '</strong> ' +
+              '<span style="font-size:0.85rem; color:var(--texto-secundario)">(' + estrellas + ')</span>' +
+              '<div style="font-size:0.9rem; margin-top:4px">' + esc(o.mensaje || 'Sin mensaje adicional.') + '</div>' +
+              '<div style="font-size:0.8rem; color:var(--texto-secundario); margin-top:4px">Enviada: ' + fechaCorta(o.fecha_postulacion) + '</div>' +
+            '</div>' +
           '</div>' +
           '<div style="text-align:right">' +
             '<div style="font-weight:700; font-size:1.15rem; color:var(--verde-700,#1b4332); margin-bottom:6px">' + peso(o.propuesta_precio) + '</div>' +

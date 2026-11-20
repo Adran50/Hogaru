@@ -243,9 +243,11 @@ def detalle_servicio(id_servicio: int, db=Depends(get_db)):
     """Detalle completo de un servicio con su disponibilidad semanal configurada."""
     servicio = uno(
         db,
-        "SELECT v.*, so.id_categoria, so.descripcion "
+        "SELECT v.*, so.id_categoria, so.descripcion, p.descripcion AS biografia_prestador, "
+        "p.estado_verificacion "
         "FROM v_prestadores_disponibles v "
         "JOIN servicio_ofrecido so ON so.id_servicio = v.id_servicio "
+        "JOIN prestador p ON p.id_prestador = v.id_prestador "
         "WHERE v.id_servicio = %s",
         (id_servicio,),
     )
@@ -270,6 +272,16 @@ def detalle_servicio(id_servicio: int, db=Depends(get_db)):
         "SELECT id_foto, archivo_url, titulo, descripcion, fecha_carga "
         "FROM portafolio_prestador WHERE id_prestador = %s ORDER BY id_foto DESC",
         (servicio["id_prestador"],),
+    )
+
+    # Otros servicios ofrecidos por el mismo prestador
+    servicio["otros_servicios"] = todos(
+        db,
+        "SELECT so.id_servicio, so.tarifa, c.nombre AS categoria, so.descripcion "
+        "FROM servicio_ofrecido so "
+        "JOIN categoria_servicio c ON c.id_categoria = so.id_categoria "
+        "WHERE so.id_prestador = %s AND so.id_servicio != %s AND so.activo = TRUE",
+        (servicio["id_prestador"], id_servicio),
     )
 
     # Teléfono para contacto directo por WhatsApp

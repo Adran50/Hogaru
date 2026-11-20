@@ -1,7 +1,9 @@
 """Módulo de Usuarios y Autenticación: registro, login, perfil y cambio de contraseña."""
+import uuid
+from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel, Field
 
 from ..db import actualizar, get_db, insertar, uno
@@ -39,6 +41,7 @@ class PerfilUpdateIn(BaseModel):
     nombre: str | None = Field(None, min_length=1, max_length=60)
     apellido: str | None = Field(None, min_length=1, max_length=60)
     telefono: str | None = Field(None, max_length=30)
+    foto_perfil: str | None = Field(None, max_length=255)
     direccion: str | None = Field(None, max_length=200)
     descripcion: str | None = Field(None, max_length=2000)
     latitud: float | None = Field(None, ge=-90, le=90)
@@ -84,6 +87,7 @@ def _obtener_perfil_completo(db, usuario: dict) -> dict:
         "email": usuario["email"],
         "tipo_cuenta": usuario["tipo_cuenta"],
         "estado": usuario.get("estado", "activo"),
+        "foto_perfil": usuario.get("foto_perfil"),
         "perfil": perfil_extra,
     }
     if "telefono" in usuario:
@@ -134,7 +138,7 @@ def login(datos: LoginIn, db=Depends(get_db)):
     """Autentica con email y contraseña, devolviendo token JWT y datos de sesión."""
     usuario = uno(
         db,
-        "SELECT id_usuario, nombre, apellido, email, contrasena, tipo_cuenta, estado "
+        "SELECT id_usuario, nombre, apellido, email, contrasena, tipo_cuenta, estado, foto_perfil "
         "FROM usuario WHERE email = %s",
         (datos.email.lower(),),
     )
@@ -152,6 +156,7 @@ def login(datos: LoginIn, db=Depends(get_db)):
             "apellido": usuario["apellido"],
             "email": usuario["email"],
             "tipo_cuenta": usuario["tipo_cuenta"],
+            "foto_perfil": usuario.get("foto_perfil"),
         },
     }
 
@@ -163,7 +168,7 @@ def ver_perfil(usuario=Depends(usuario_actual), db=Depends(get_db)):
     # Obtenemos los campos completos del usuario actual
     u_completo = uno(
         db,
-        "SELECT id_usuario, nombre, apellido, email, telefono, tipo_cuenta, estado "
+        "SELECT id_usuario, nombre, apellido, email, telefono, tipo_cuenta, estado, foto_perfil "
         "FROM usuario WHERE id_usuario = %s",
         (usuario["id_usuario"],),
     )
@@ -185,6 +190,8 @@ def actualizar_perfil(datos: PerfilUpdateIn, usuario=Depends(usuario_actual), db
         cambios_usuario["apellido"] = datos.apellido
     if datos.telefono is not None:
         cambios_usuario["telefono"] = datos.telefono
+    if datos.foto_perfil is not None:
+        cambios_usuario["foto_perfil"] = datos.foto_perfil
 
     if cambios_usuario:
         set_clause = ", ".join(f"{col} = %s" for col in cambios_usuario)
@@ -233,11 +240,62 @@ def actualizar_perfil(datos: PerfilUpdateIn, usuario=Depends(usuario_actual), db
 
     u_actualizado = uno(
         db,
-        "SELECT id_usuario, nombre, apellido, email, telefono, tipo_cuenta, estado "
+        "SELECT id_usuario, nombre, apellido, email, telefono, tipo_cuenta, estado, foto_perfil "
         "FROM usuario WHERE id_usuario = %s",
         (id_usuario,),
     )
     return _obtener_perfil_completo(db, u_actualizado)
+
+
+@router.post("/foto-perfil", status_code=200)
+@router.post("/perfil/foto", status_code=200)
+@router.post("/me/foto", status_code=200)
+async def subir_foto_perfil(
+    archivo: UploadFile = File(...),
+    usuario=Depends(usuario_actual),
+    db=Depends(get_db),
+):
+    """Sube una nueva fotografía de perfil y la asigna al usuario actual."""
+    if not archivo.filename:
+        raise ReglaNegocioError("No se seleccionó ningún archivo de imagen")
+
+    ext = Path(archivo.filename).suffix.lower()
+    if ext not in {".jpg", ".jpeg", ".png", ".webp"}:
+        raise ReglaNegocioError("Formato de imagen inválido. Solo se admiten archivos JPG, PNG y WebP.")
+
+    contenido = await archivo.read()
+    if len(contenido) > 10 * 1024 * 1024:
+        raise ReglaNegocioError("La imagen no debe superar los 10 MB de tamaño.")
+
+    carpeta_perfiles = Path(__file__).resolve().parent.parent.parent / "uploads" / "perfiles"
+    carpeta_perfiles.mkdir(parents=True, exist_ok=True)
+
+    nombre_archivo = f"perfil_{usuario['id_usuario']}_{uuid.uuid4().hex[:8]}{ext}"
+    destino = carpeta_perfiles / nombre_archivo
+    with open(destino, "wb") as f:
+        f.write(contenido)
+
+    foto_url = f"/uploads/perfiles/{nombre_archivo}"
+    actualizar(db, "UPDATE usuario SET foto_perfil = %s WHERE id_usuario = %s", (foto_url, usuario["id_usuario"]))
+    db.commit()
+
+    return {
+        "mensaje": "Foto de perfil actualizada exitosamente",
+        "foto_perfil": foto_url,
+    }
+
+
+@router.delete("/foto-perfil", status_code=200)
+@router.delete("/perfil/foto", status_code=200)
+@router.delete("/me/foto", status_code=200)
+def eliminar_foto_perfil(usuario=Depends(usuario_actual), db=Depends(get_db)):
+    """Quita la foto de perfil del usuario dejándola en null."""
+    actualizar(db, "UPDATE usuario SET foto_perfil = NULL WHERE id_usuario = %s", (usuario["id_usuario"],))
+    db.commit()
+    return {
+        "mensaje": "Foto de perfil eliminada exitosamente",
+        "foto_perfil": None,
+    }
 
 
 @router.post("/cambiar-password")

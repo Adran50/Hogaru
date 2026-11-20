@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mi panel — Hogaru</title>
   <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
-  <link rel="stylesheet" href="../estilos.css?v=2">
+  <link rel="stylesheet" href="../estilos.css">
 </head>
 <body data-raiz="../">
   <div id="navbar"></div>
@@ -86,6 +86,25 @@
             </div>
           </div>
         </details>
+      </div>
+    </div>
+
+    <!-- Mi Foto de Perfil Profesional -->
+    <div class="panel" id="panel-foto-perfil">
+      <h2>Mi foto de perfil</h2>
+      <p class="muted">Una foto clara y profesional genera mayor confianza en los clientes y mejora la visibilidad de tus servicios.</p>
+      <div class="fila" style="gap:24px; align-items:center; flex-wrap:wrap; margin-top:14px">
+        <div id="vista-previa-foto-prestador" style="flex-shrink:0"></div>
+        <form id="form-foto-perfil-panel" style="flex:1; min-width:260px">
+          <div class="campo" style="margin-bottom:10px">
+            <label for="input-foto-perfil-panel">Elegir nueva foto (JPG, PNG o WebP, máx 10 MB)</label>
+            <input type="file" id="input-foto-perfil-panel" accept="image/jpeg,image/png,image/webp" required>
+          </div>
+          <div class="fila" style="gap:10px">
+            <button class="btn btn-claro btn-chico" type="submit" id="btn-subir-foto-panel">Actualizar foto de perfil</button>
+            <button class="btn btn-borde btn-chico" type="button" id="btn-eliminar-foto-panel" style="color:var(--peligro); border-color:var(--peligro)">Quitar foto</button>
+          </div>
+        </form>
       </div>
     </div>
 

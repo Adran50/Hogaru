@@ -14,6 +14,27 @@
   document.getElementById('titulo').textContent = TEXTOS[tipo][0];
   document.getElementById('subtitulo').textContent = TEXTOS[tipo][1];
 
+  // Perfil del usuario actual en la cabecera
+  function actualizarPerfilCabecera() {
+    var cur = Sesion.usuario();
+    if (!cur) return;
+    var contAvatar = document.getElementById('avatar-perfil-solicitudes');
+    var txtNombre = document.getElementById('nombre-perfil-solicitudes');
+    var txtInfo = document.getElementById('info-perfil-solicitudes');
+    if (contAvatar) contAvatar.innerHTML = renderAvatar(cur.foto_perfil, cur.nombre, 54);
+    if (txtNombre) txtNombre.textContent = (cur.nombre || '') + ' ' + (cur.apellido || '');
+    var rolTxt = cur.tipo_cuenta === 'prestador' ? 'Prestador de Servicios' : (cur.tipo_cuenta === 'administrador' ? 'Administrador' : 'Cliente');
+    if (txtInfo) txtInfo.textContent = rolTxt + (cur.email ? ' · ' + cur.email : '');
+  }
+  actualizarPerfilCabecera();
+
+  var btnCambiarFoto = document.getElementById('btn-cambiar-foto-solicitudes');
+  if (btnCambiarFoto) {
+    btnCambiarFoto.addEventListener('click', function () {
+      abrirModalPerfil();
+    });
+  }
+
   var ESTADOS = [['', 'Todas'], ['pendiente', 'Pendientes'], ['aceptada', 'Aceptadas'], ['en_curso', 'En curso'], ['finalizada', 'Finalizadas'], ['cancelada', 'Canceladas']];
   var filtros = document.getElementById('filtros');
   filtros.innerHTML = ESTADOS.map(function (e) {
@@ -43,9 +64,19 @@
         (colCliente ? '<th>Cliente</th>' : '') + (colPrestador ? '<th>Prestador</th>' : '') +
         '<th>Fecha</th><th>Monto</th><th>Estado</th><th>Pago</th></tr></thead><tbody>' +
         lista.map(function (s) {
+          var clienteTd = colCliente
+            ? '<td><div style="display:inline-flex;align-items:center;gap:8px">' +
+                renderAvatar(s.cliente_foto, s.cliente, 26) +
+                '<span>' + esc(s.cliente) + '</span></div></td>'
+            : '';
+          var prestadorTd = colPrestador
+            ? '<td><div style="display:inline-flex;align-items:center;gap:8px">' +
+                renderAvatar(s.prestador_foto, s.prestador, 26) +
+                '<span>' + esc(s.prestador) + '</span></div></td>'
+            : '';
+
           return '<tr class="fila-link" data-id="' + s.id_solicitud + '"><td>' + esc(s.servicio) + '</td>' +
-            (colCliente ? '<td>' + esc(s.cliente) + '</td>' : '') +
-            (colPrestador ? '<td>' + esc(s.prestador) + '</td>' : '') +
+            clienteTd + prestadorTd +
             '<td>' + fechaHora(s.fecha_hora_programada) + '</td><td>' + peso(s.monto_estimado) + '</td>' +
             '<td>' + badge(s.estado) + '</td><td>' + (s.pago_estado ? badge(s.pago_estado) : '<span class="muted">—</span>') + '</td></tr>';
         }).join('') + '</tbody></table>';

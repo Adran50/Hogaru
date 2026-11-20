@@ -92,6 +92,7 @@ def listar_anuncios(
                a.presupuesto, a.fecha_servicio, a.duracion_horas, a.direccion, a.estado, a.fecha_creacion,
                c.nombre AS categoria, COALESCE(c.icono, '🧹') AS icono,
                CONCAT(u.nombre, ' ', LEFT(u.apellido, 1), '.') AS cliente_nombre,
+               u.foto_perfil AS cliente_foto,
                (SELECT COUNT(*) FROM postulacion_anuncio p WHERE p.id_anuncio = a.id_anuncio) AS total_postulaciones
         FROM anuncio_trabajo a
         JOIN categoria_servicio c ON c.id_categoria = a.id_categoria
@@ -110,9 +111,11 @@ def mis_anuncios(cliente=Depends(solo_cliente), db=Depends(get_db)):
         SELECT a.id_anuncio, a.id_categoria, a.titulo, a.descripcion, a.presupuesto,
                a.fecha_servicio, a.duracion_horas, a.direccion, a.estado, a.fecha_creacion,
                c.nombre AS categoria, COALESCE(c.icono, '🧹') AS icono,
+               u.foto_perfil AS cliente_foto,
                (SELECT COUNT(*) FROM postulacion_anuncio p WHERE p.id_anuncio = a.id_anuncio) AS total_postulaciones
         FROM anuncio_trabajo a
         JOIN categoria_servicio c ON c.id_categoria = a.id_categoria
+        JOIN usuario u ON u.id_usuario = a.id_cliente
         WHERE a.id_cliente = %s
         ORDER BY a.fecha_creacion DESC
     """
@@ -129,6 +132,7 @@ def detalle_anuncio(id_anuncio: int, usuario=Depends(usuario_actual), db=Depends
                a.presupuesto, a.fecha_servicio, a.duracion_horas, a.direccion, a.estado, a.fecha_creacion,
                c.nombre AS categoria, COALESCE(c.icono, '🧹') AS icono,
                CONCAT(u.nombre, ' ', LEFT(u.apellido, 1), '.') AS cliente_nombre,
+               u.foto_perfil AS cliente_foto,
                (SELECT COUNT(*) FROM postulacion_anuncio p WHERE p.id_anuncio = a.id_anuncio) AS total_postulaciones
         FROM anuncio_trabajo a
         JOIN categoria_servicio c ON c.id_categoria = a.id_categoria
@@ -231,7 +235,7 @@ def listar_postulaciones(
     sql = """
         SELECT p.id_postulacion, p.id_anuncio, p.id_prestador, p.propuesta_precio, p.mensaje,
                p.estado, p.fecha_postulacion,
-               u.nombre, u.apellido, u.telefono, u.email,
+               u.nombre, u.apellido, u.telefono, u.email, u.foto_perfil,
                pr.puntuacion_promedio, pr.descripcion AS prestador_descripcion
         FROM postulacion_anuncio p
         JOIN usuario u ON u.id_usuario = p.id_prestador
