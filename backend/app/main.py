@@ -69,6 +69,7 @@ CARPETA_FRONTEND = Path(__file__).resolve().parent.parent.parent
 CARPETA_UPLOADS = CARPETA_FRONTEND / "backend" / "uploads"
 CARPETA_UPLOADS.mkdir(parents=True, exist_ok=True)
 (CARPETA_UPLOADS / "documentos").mkdir(parents=True, exist_ok=True)
+(CARPETA_UPLOADS / "portafolio").mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(CARPETA_UPLOADS)), name="uploads")
 
 if (CARPETA_FRONTEND / "index.html").exists():

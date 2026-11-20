@@ -1,9 +1,11 @@
-"""Módulo de Servicios: catálogo, búsqueda con Haversine, filtros avanzados y gestión de disponibilidad."""
+"""Módulo de Servicios: catálogo, búsqueda con Haversine, filtros avanzados, portafolio y zonas."""
 from datetime import time, timedelta
 from decimal import Decimal
+from pathlib import Path
 from typing import Literal
+import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from pydantic import BaseModel, Field, model_validator
 
 from ..db import actualizar, get_db, insertar, todos, uno
@@ -124,6 +126,7 @@ def sugerir_categoria(datos: CategoriaSugerirIn, usuario=Depends(usuario_actual)
 def buscar_servicios(
     categoria: int | None = Query(None, description="Filtrar por id_categoria"),
     q: str | None = Query(None, description="Búsqueda por texto en nombre, categoría o descripción"),
+    zona: str | None = Query(None, description="Filtrar por zona geográfica o localidad"),
     tarifa_min: Decimal | None = Query(None, ge=0, description="Tarifa mínima por hora"),
     tarifa_max: Decimal | None = Query(None, gt=0, description="Tarifa máxima por hora"),
     puntuacion_min: Decimal | None = Query(None, ge=1, le=5, description="Puntuación promedio mínima"),
@@ -152,6 +155,11 @@ def buscar_servicios(
     if q:
         condiciones.append("(v.nombre_publico LIKE %s OR v.categoria LIKE %s OR so.descripcion LIKE %s)")
         params += [f"%{q}%"] * 3
+
+    # 2b. Filtro por zona o localidad
+    if zona:
+        condiciones.append("(v.zona_cobertura LIKE %s OR so.descripcion LIKE %s OR v.categoria LIKE %s)")
+        params += [f"%{zona}%"] * 3
 
     # 3. Rango de tarifas
     if tarifa_min is not None:
@@ -255,6 +263,19 @@ def detalle_servicio(id_servicio: int, db=Depends(get_db)):
         f["hora_fin"] = _hhmm(f["hora_fin"])
 
     servicio["disponibilidad"] = franjas
+
+    # Galería de trabajos previos del prestador
+    servicio["portafolio"] = todos(
+        db,
+        "SELECT id_foto, archivo_url, titulo, descripcion, fecha_carga "
+        "FROM portafolio_prestador WHERE id_prestador = %s ORDER BY id_foto DESC",
+        (servicio["id_prestador"],),
+    )
+
+    # Teléfono para contacto directo por WhatsApp
+    u_prestador = uno(db, "SELECT telefono FROM usuario WHERE id_usuario = %s", (servicio["id_prestador"],))
+    servicio["telefono"] = u_prestador["telefono"] if u_prestador else None
+
     return servicio
 
 
@@ -339,3 +360,92 @@ def reemplazar_disponibilidad(
     _guardar_franjas(db, id_servicio, franjas)
     db.commit()
     return {"id_servicio": id_servicio, "franjas_configuradas": len(franjas)}
+
+
+# =====================================================
+# Portafolio de Trabajos Previos y Zonas de Atención
+# =====================================================
+
+@router.get("/prestadores/{id_prestador}/portafolio")
+def ver_portafolio_prestador(id_prestador: int, db=Depends(get_db)):
+    """Obtiene la galería de trabajos previos y fotos de un prestador."""
+    return todos(
+        db,
+        "SELECT id_foto, id_prestador, archivo_url, titulo, descripcion, fecha_carga "
+        "FROM portafolio_prestador WHERE id_prestador = %s ORDER BY id_foto DESC",
+        (id_prestador,),
+    )
+
+
+@router.post("/prestadores/portafolio", status_code=201)
+async def subir_foto_portafolio(
+    titulo: str = Form(..., min_length=2, max_length=100),
+    descripcion: str | None = Form(None, max_length=255),
+    archivo: UploadFile = File(...),
+    usuario=Depends(solo_prestador),
+    db=Depends(get_db),
+):
+    """El prestador sube una fotografía de un trabajo previo a su portafolio."""
+    ext = Path(archivo.filename or "trabajo.jpg").suffix.lower()
+    if ext not in {".jpg", ".jpeg", ".png", ".webp"}:
+        raise ReglaNegocioError("Formato de imagen no permitido. Solo se aceptan .jpg, .jpeg, .png y .webp.")
+
+    contenido = await archivo.read()
+    if len(contenido) > 10 * 1024 * 1024:
+        raise ReglaNegocioError("La imagen excede el límite máximo permitido de 10 MB.")
+    if len(contenido) == 0:
+        raise ReglaNegocioError("El archivo enviado está vacío.")
+
+    carpeta_portafolio = Path(__file__).resolve().parent.parent.parent / "uploads" / "portafolio"
+    carpeta_portafolio.mkdir(parents=True, exist_ok=True)
+
+    nombre_seguro = f"{uuid.uuid4().hex}{ext}"
+    with open(carpeta_portafolio / nombre_seguro, "wb") as f:
+        f.write(contenido)
+
+    archivo_url = f"/uploads/portafolio/{nombre_seguro}"
+    id_foto = insertar(
+        db,
+        "INSERT INTO portafolio_prestador (id_prestador, archivo_url, titulo, descripcion) "
+        "VALUES (%s, %s, %s, %s)",
+        (usuario["id_usuario"], archivo_url, titulo.strip(), descripcion.strip() if descripcion else None),
+    )
+    db.commit()
+
+    return {
+        "id_foto": id_foto,
+        "id_prestador": usuario["id_usuario"],
+        "archivo_url": archivo_url,
+        "titulo": titulo.strip(),
+        "descripcion": descripcion.strip() if descripcion else None,
+    }
+
+
+@router.delete("/prestadores/portafolio/{id_foto}")
+def borrar_foto_portafolio(id_foto: int, usuario=Depends(solo_prestador), db=Depends(get_db)):
+    """Elimina una foto del portafolio propio."""
+    foto = uno(db, "SELECT id_prestador FROM portafolio_prestador WHERE id_foto = %s", (id_foto,))
+    if not foto:
+        raise NoEncontradoError("La foto solicitada no existe")
+    if foto["id_prestador"] != usuario["id_usuario"]:
+        raise AccesoDenegadoError("No podés eliminar fotos del portafolio de otro usuario")
+
+    actualizar(db, "DELETE FROM portafolio_prestador WHERE id_foto = %s", (id_foto,))
+    db.commit()
+    return {"mensaje": "Foto eliminada del portafolio exitosamente", "id_foto": id_foto}
+
+
+class ZonaUpdateIn(BaseModel):
+    zona_cobertura: str = Field(..., min_length=2, max_length=100)
+
+
+@router.put("/prestadores/zona")
+def actualizar_zona_cobertura(datos: ZonaUpdateIn, usuario=Depends(solo_prestador), db=Depends(get_db)):
+    """Actualiza la zona o localidades de cobertura de un prestador."""
+    actualizar(
+        db,
+        "UPDATE prestador SET zona_cobertura = %s WHERE id_prestador = %s",
+        (datos.zona_cobertura.strip(), usuario["id_usuario"]),
+    )
+    db.commit()
+    return {"mensaje": "Zona actualizada correctamente", "zona_cobertura": datos.zona_cobertura.strip()}

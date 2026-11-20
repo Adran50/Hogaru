@@ -12,7 +12,9 @@ SELECT sc.id_solicitud, sc.id_cliente, sc.id_servicio, sc.fecha_hora_programada,
        ROUND(so.tarifa * sc.duracion_horas, 2) AS monto_estimado,
        pa.estado AS pago_estado,
        CONCAT(uc.nombre, ' ', LEFT(uc.apellido, 1), '.') AS cliente,
-       CONCAT(up.nombre, ' ', LEFT(up.apellido, 1), '.') AS prestador
+       CONCAT(up.nombre, ' ', LEFT(up.apellido, 1), '.') AS prestador,
+       uc.telefono AS cliente_telefono,
+       up.telefono AS prestador_telefono
 FROM solicitud_contratacion sc
 JOIN servicio_ofrecido so ON so.id_servicio  = sc.id_servicio
 JOIN categoria_servicio cs ON cs.id_categoria = so.id_categoria

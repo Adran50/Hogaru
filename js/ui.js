@@ -197,13 +197,16 @@ function tarjetaServicio(s) {
   var rating = tiene
     ? '★ ' + Number(s.puntuacion_promedio).toFixed(1) + ' · ' + s.servicios_realizados + ' realizados'
     : '★ Nuevo · Sin calificaciones';
+  var zonaHtml = s.zona_cobertura
+    ? '<div style="font-size:0.8rem;color:var(--gris);margin-top:3px">📍 ' + esc(s.zona_cobertura) + '</div>'
+    : '';
   return '<a class="card" href="' + RAIZ + 'paginas/servicio.html?id=' + s.id_servicio + '">' +
     '<div class="card-top">' +
       '<div class="avatar">' + esc(iniciales(s.nombre_publico)) + '</div>' +
       '<div>' +
         '<div class="nombre">' + esc(s.nombre_publico) + '</div>' +
         '<div class="rol">' + esc(s.categoria) + '</div>' +
-        '<span class="verif-chip">✓ Verificado</span>' +
+        zonaHtml +
       '</div>' +
     '</div>' +
     '<div class="rating">' + rating + '</div>' +

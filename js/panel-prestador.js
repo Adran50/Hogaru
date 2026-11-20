@@ -265,11 +265,132 @@
     } catch (err) { toast(err.message, true); }
   });
 
+  // ===== Zona de Cobertura =====
+  async function cargarZona() {
+    try {
+      var yo = await api('/auth/me');
+      var zona = yo.perfil && yo.perfil.zona_cobertura ? yo.perfil.zona_cobertura : '';
+      var inputZona = document.getElementById('zona-cobertura');
+      if (inputZona) inputZona.value = zona;
+    } catch (e) { /* silencioso */ }
+  }
+
+  var formZona = document.getElementById('form-zona');
+  if (formZona) {
+    formZona.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var btn = document.getElementById('btn-guardar-zona');
+      var valor = (document.getElementById('zona-cobertura').value || '').trim();
+      if (!valor) { toast('Escribí una zona antes de guardar.', true); return; }
+      ocupado(btn, true);
+      try {
+        await api('/prestadores/zona', { metodo: 'PUT', cuerpo: { zona_cobertura: valor } });
+        toast('Zona de cobertura actualizada correctamente.');
+      } catch (err) {
+        toast(err.message, true);
+      } finally {
+        ocupado(btn, false);
+      }
+    });
+  }
+
+  // ===== Portafolio / Galería =====
+  async function cargarPortafolio() {
+    var contenedor = document.getElementById('lista-portafolio');
+    if (!contenedor) return;
+    contenedor.innerHTML = '<p class="muted">Cargando fotos…</p>';
+    try {
+      var yo = await api('/auth/me');
+      var fotos = await api('/prestadores/' + yo.perfil.id_prestador + '/portafolio');
+      if (!fotos || fotos.length === 0) {
+        contenedor.innerHTML = '<p class="muted">Todavía no subiste fotos a tu galería.</p>';
+        return;
+      }
+      contenedor.innerHTML = '<div class="grilla-fotos-portafolio">' +
+        fotos.map(function (f) {
+          var url = f.archivo_url.startsWith('http') ? f.archivo_url : (API_URL + f.archivo_url);
+          return '<div class="tarjeta-foto-portafolio" style="border:1px solid var(--borde);border-radius:10px;overflow:hidden;background:var(--fondo)">' +
+            '<img src="' + esc(url) + '" alt="' + esc(f.titulo) + '" style="width:100%;height:160px;object-fit:cover;display:block" loading="lazy">' +
+            '<div style="padding:10px">' +
+            '<p style="font-weight:600;margin:0 0 4px">' + esc(f.titulo) + '</p>' +
+            (f.descripcion ? '<p style="font-size:0.85rem;color:var(--texto-secundario);margin:0 0 8px">' + esc(f.descripcion) + '</p>' : '') +
+            '<button class="btn btn-borde btn-chico" style="color:var(--peligro);border-color:var(--peligro)" data-borrar-foto="' + f.id_foto + '">🗑 Eliminar</button>' +
+            '</div></div>';
+        }).join('') +
+        '</div>';
+    } catch (err) {
+      contenedor.innerHTML = '<p class="muted">No se pudo cargar la galería.</p>';
+    }
+  }
+
+  var listaPortafolio = document.getElementById('lista-portafolio');
+  if (listaPortafolio) {
+    listaPortafolio.addEventListener('click', async function (ev) {
+      var btn = ev.target.closest('button[data-borrar-foto]');
+      if (!btn) return;
+      var idFoto = btn.dataset.borrarFoto;
+      if (!confirm('¿Eliminar esta foto de tu galería?')) return;
+      btn.disabled = true;
+      try {
+        await api('/prestadores/portafolio/' + idFoto, { metodo: 'DELETE' });
+        toast('Foto eliminada de tu portafolio.');
+        await cargarPortafolio();
+      } catch (err) {
+        toast(err.message, true);
+        btn.disabled = false;
+      }
+    });
+  }
+
+  var formPortafolio = document.getElementById('form-subir-portafolio');
+  if (formPortafolio) {
+    formPortafolio.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var titulo = (document.getElementById('foto-titulo').value || '').trim();
+      var desc = (document.getElementById('foto-desc').value || '').trim();
+      var fileInput = document.getElementById('foto-archivo');
+      var btn = document.getElementById('btn-subir-foto');
+
+      if (!titulo) { toast('Escribí un título para la foto.', true); return; }
+      if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+        toast('Seleccioná una imagen para subir.', true); return;
+      }
+
+      var token = Sesion.token();
+      if (!token) { toast('No hay sesión activa. Volvé a ingresar.', true); return; }
+
+      var fd = new FormData();
+      fd.append('titulo', titulo);
+      fd.append('descripcion', desc);
+      fd.append('archivo', fileInput.files[0]);
+
+      ocupado(btn, true);
+      try {
+        var res = await fetch(API_URL + '/prestadores/portafolio', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: fd,
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Error al subir la foto');
+        toast('¡Foto agregada a tu galería con éxito!');
+        formPortafolio.reset();
+        await cargarPortafolio();
+      } catch (err) {
+        toast(err.message, true);
+      } finally {
+        ocupado(btn, false);
+      }
+    });
+  }
+
   async function iniciar() {
     try {
       await cargarCategoriasSelect();
       await cargarVerificacion();
       await cargarServicios();
+      await cargarZona();
+      await cargarPortafolio();
     } catch (e) { mostrarAviso(aviso, 'error', e.message); }
   }
 

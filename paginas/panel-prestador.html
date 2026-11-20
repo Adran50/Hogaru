@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mi panel — Hogaru</title>
   <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
-  <link rel="stylesheet" href="../estilos.css">
+  <link rel="stylesheet" href="../estilos.css?v=2">
 </head>
 <body data-raiz="../">
   <div id="navbar"></div>
@@ -89,6 +89,46 @@
       </div>
     </div>
 
+    <!-- Zona de Atención y Cobertura -->
+    <div class="panel">
+      <h2>Zona de atención y cobertura</h2>
+      <p class="muted">Indicá en qué partidos, barrios o localidades ofrecés tus servicios para aparecer en las búsquedas zonales.</p>
+      <form id="form-zona" class="fila" style="gap:10px; max-width:600px; margin-top:10px">
+        <input id="zona-cobertura" placeholder="Ej: Morón, Haedo y Castelar" required style="flex:1">
+        <button class="btn btn-claro" type="submit" id="btn-guardar-zona">Guardar zona</button>
+      </form>
+    </div>
+
+    <!-- Galería de Trabajos Realizados (Portafolio) -->
+    <div class="panel" id="panel-portafolio">
+      <div class="fila-entre">
+        <h2>Mi galería de trabajos realizados</h2>
+        <span class="muted" style="font-size:0.85rem">Portafolio profesional</span>
+      </div>
+      <p class="muted">Subí fotos de trabajos previos que hayas realizado para que los clientes vean la calidad de tus labores.</p>
+
+      <form id="form-subir-portafolio" style="border:1px dashed var(--borde); border-radius:10px; padding:16px; background:var(--fondo); margin-bottom:16px">
+        <h3 style="margin-top:0; font-size:1rem">+ Agregar foto al portafolio</h3>
+        <div class="grilla-2">
+          <div class="campo">
+            <label for="foto-titulo">Título de la labor</label>
+            <input id="foto-titulo" placeholder="Ej: Limpieza profunda de cocina" required maxlength="100">
+          </div>
+          <div class="campo">
+            <label for="foto-archivo">Fotografía (JPG o PNG, máx 10 MB)</label>
+            <input type="file" id="foto-archivo" accept="image/jpeg,image/png,image/webp" required>
+          </div>
+        </div>
+        <div class="campo">
+          <label for="foto-desc">Descripción (opcional)</label>
+          <input id="foto-desc" placeholder="Ej: Desengrasado completo de alacenas y pisos cerámicos." maxlength="255">
+        </div>
+        <button class="btn btn-claro btn-chico" type="submit" id="btn-subir-foto">+ Subir foto a mi portafolio</button>
+      </form>
+
+      <div id="lista-portafolio"></div>
+    </div>
+
     <div class="panel">
       <h2>Mis servicios</h2>
       <div class="tabla-envoltorio" id="servicios"></div>
@@ -135,3 +175,4 @@
   <script src="../js/panel-prestador.js"></script>
 </body>
 </html>
+

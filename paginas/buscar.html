@@ -5,21 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Buscar servicios — Hogaru</title>
   <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
-  <link rel="stylesheet" href="../estilos.css">
+  <link rel="stylesheet" href="../estilos.css?v=2">
 </head>
 <body data-raiz="../">
   <div id="navbar"></div>
   <main class="contenedor">
     <h1>Buscar servicios</h1>
     <form class="panel" id="filtros">
-      <div class="grilla-2">
-        <div class="campo"><label for="q">¿Qué buscás?</label><input id="q" placeholder="Nombre, categoría o descripción"></div>
-        <div class="campo"><label for="categoria">Categoría</label><select id="categoria"><option value="">Todas</option></select></div>
+      <div class="grilla-3">
+        <div class="campo"><label for="q">¿Qué buscás?</label><input id="q" placeholder="Nombre, especialidad o tarea"></div>
+        <div class="campo"><label for="categoria">Categoría</label><select id="categoria"><option value="">Todas las categorías</option></select></div>
+        <div class="campo"><label for="zona">Zona / Localidad</label>
+          <select id="zona">
+            <option value="">Todas las zonas</option>
+            <option value="Morón">Morón</option>
+            <option value="Haedo">Haedo</option>
+            <option value="Castelar">Castelar</option>
+            <option value="Ramos Mejía">Ramos Mejía</option>
+            <option value="Ituzaingó">Ituzaingó</option>
+            <option value="San Justo">San Justo</option>
+            <option value="CABA">CABA / Capital</option>
+          </select>
+        </div>
       </div>
       <div class="grilla-2">
         <div class="campo"><label for="tarifa-max">Tarifa máxima por hora ($)</label><input type="number" id="tarifa-max" min="1" step="any"></div>
         <div class="campo"><label for="orden">Ordenar por</label>
-          <select id="orden"><option value="puntuacion">Mejor calificados</option><option value="tarifa">Menor precio</option></select>
+          <select id="orden"><option value="puntuacion">Mejor calificados</option><option value="tarifa_asc">Menor precio</option><option value="tarifa_desc">Mayor precio</option></select>
         </div>
       </div>
       <button class="btn" type="submit">Buscar</button>
@@ -35,3 +47,4 @@
   <script src="../js/buscar.js"></script>
 </body>
 </html>
+

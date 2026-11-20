@@ -59,7 +59,30 @@
       dato('Cliente', esc(sol.cliente)) + dato('Prestador', esc(sol.prestador)) +
       dato('Fecha y hora', fechaHora(sol.fecha_hora_programada)) + dato('Duración', sol.duracion_horas + ' hs') +
       dato('Dirección', esc(sol.direccion_trabajo)) + dato('Tarifa', peso(sol.tarifa) + ' / hora') +
-      dato('Total', '<strong>' + peso(sol.monto_estimado) + '</strong>') + '</div></div>';
+      dato('Total', '<strong>' + peso(sol.monto_estimado) + '</strong>') + '</div>' +
+      bloqueContactoWhatsapp() + '</div>';
+  }
+
+  function bloqueContactoWhatsapp() {
+    var telDestino = esCliente ? sol.prestador_telefono : (esPrestador ? sol.cliente_telefono : null);
+    var nombreDestino = esCliente ? sol.prestador : sol.cliente;
+    var rolDestino = esCliente ? 'el prestador' : 'el cliente';
+
+    if (!telDestino || sol.estado === 'cancelada') return '';
+
+    var telLimpio = telDestino.replace(/\D/g, '');
+    if (telLimpio.length === 10) telLimpio = '549' + telLimpio;
+    else if (telLimpio.length === 8) telLimpio = '54911' + telLimpio;
+
+    var msj = '¡Hola ' + nombreDestino + '! Te contacto desde Hogaru por la solicitud #' + sol.id_solicitud + ' (' + sol.servicio + ').';
+    var linkWa = 'https://wa.me/' + telLimpio + '?text=' + encodeURIComponent(msj);
+
+    return '<div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--borde); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px">' +
+      '<div style="font-size:0.9rem">📱 <strong>Teléfono de contacto:</strong> ' + esc(telDestino) + '</div>' +
+      '<a href="' + linkWa + '" target="_blank" rel="noopener noreferrer" class="btn" style="background:#25D366; border-color:#25D366; color:#fff; display:inline-flex; align-items:center; gap:6px; font-weight:700; text-decoration:none">' +
+        '<span style="font-size:1.15rem">💬</span> Hablar por WhatsApp con ' + esc(rolDestino) +
+      '</a>' +
+    '</div>';
   }
   function dato(etiqueta, valor) {
     return '<div class="dato"><div class="etiqueta">' + etiqueta + '</div><div class="valor">' + valor + '</div></div>';

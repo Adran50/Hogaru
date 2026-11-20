@@ -783,18 +783,22 @@ tr.fila-link:hover td {
   gap: 10px;
 }
 .toast {
-  background: var(--texto-principal);
-  color: #ffffff;
+  background: #1e293b !important;
+  color: #f8fafc !important;
   padding: 14px 20px;
   border-radius: var(--radio-sm);
   box-shadow: var(--sombra-xl);
   max-width: 360px;
   font-size: 0.92rem;
   font-weight: 500;
+  line-height: 1.4;
   animation: slideUp 0.25s ease;
+  border-left: 4px solid #38bdf8;
 }
 .toast-error {
-  background: var(--rojo);
+  background: #7f1d1d !important;
+  color: #fef2f2 !important;
+  border-left: 4px solid #fca5a5;
 }
 
 /* ============================================================
@@ -1358,3 +1362,31 @@ tr.fila-link:hover td {
     display: none !important;
   }
 }
+
+/* ============================================================
+   GALERÍA / PORTAFOLIO DEL PRESTADOR
+   ============================================================ */
+.grilla-fotos-portafolio {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+.tarjeta-foto-portafolio img {
+  transition: transform 0.2s;
+}
+.tarjeta-foto-portafolio:hover img {
+  transform: scale(1.03);
+}
+@media (max-width: 600px) {
+  .grilla-fotos-portafolio {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 400px) {
+  .grilla-fotos-portafolio {
+    grid-template-columns: 1fr;
+  }
+}
+
+

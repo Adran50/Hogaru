@@ -18,6 +18,7 @@
   // Filtros que vienen de la URL (por ejemplo desde el inicio)
   document.getElementById('q').value = param('q') || '';
   document.getElementById('categoria').value = param('categoria') || '';
+  if (document.getElementById('zona')) document.getElementById('zona').value = param('zona') || '';
 
   async function buscar(reiniciar) {
     if (reiniciar) { pagina = 1; total = 0; resultados.innerHTML = ''; }
@@ -26,6 +27,7 @@
       var lista = await api('/servicios', { params: {
         q: document.getElementById('q').value.trim(),
         categoria: document.getElementById('categoria').value,
+        zona: document.getElementById('zona') ? document.getElementById('zona').value : null,
         tarifa_max: document.getElementById('tarifa-max').value,
         orden: document.getElementById('orden').value,
         limite: LIMITE,
