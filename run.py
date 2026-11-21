@@ -38,8 +38,8 @@ def iniciar():
     print("=" * 65)
     
     # 1. Asegurar directorios de uploads
-    uploads_dir = BACKEND_DIR / "uploads" / "documentos"
-    uploads_dir.mkdir(parents=True, exist_ok=True)
+    (BACKEND_DIR / "uploads" / "documentos").mkdir(parents=True, exist_ok=True)
+    (BACKEND_DIR / "uploads" / "perfiles").mkdir(parents=True, exist_ok=True)
     
     # 2. Aplicar migraciones automáticas si MySQL está corriendo
     print("[1/2] Verificando base de datos y migraciones...")

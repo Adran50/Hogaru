@@ -89,11 +89,37 @@
       : '<p class="muted">Todavía no publicaste servicios.</p>';
   }
 
-  async function cargarCategoriasSelect() {
+  async function cargarCategoriasSelect(selId) {
     var categorias = await api('/categorias');
-    document.getElementById('categoria').innerHTML = categorias.map(function (c) {
+    var opciones = categorias.map(function (c) {
       return '<option value="' + c.id_categoria + '">' + esc(c.icono || '🧹') + ' ' + esc(c.nombre) + '</option>';
-    }).join('');
+    });
+    opciones.push('<option value="otros">✨ Otros (especificar nueva categoría)...</option>');
+    var sel = document.getElementById('categoria');
+    sel.innerHTML = opciones.join('');
+    if (selId) {
+      sel.value = String(selId);
+    }
+    var wrapOtra = document.getElementById('campo-otra-cat-prestador');
+    if (wrapOtra) {
+      wrapOtra.classList.toggle('oculto', sel.value !== 'otros');
+    }
+  }
+
+  var selCategoria = document.getElementById('categoria');
+  if (selCategoria) {
+    selCategoria.addEventListener('change', function () {
+      var wrapOtra = document.getElementById('campo-otra-cat-prestador');
+      if (wrapOtra) {
+        if (this.value === 'otros') {
+          wrapOtra.classList.remove('oculto');
+          var inpNom = document.getElementById('input-otra-cat-nombre');
+          if (inpNom) inpNom.focus();
+        } else {
+          wrapOtra.classList.add('oculto');
+        }
+      }
+    });
   }
 
   async function subirArchivoDoc(tipoDoc, fileInput, btnSubmit) {
@@ -200,14 +226,36 @@
     var btn = document.getElementById('btn-publicar');
     ocupado(btn, true);
     try {
+      var catVal = document.getElementById('categoria').value;
+      var idCatFinal = null;
+      if (catVal === 'otros') {
+        var nomOtra = document.getElementById('input-otra-cat-nombre').value.trim();
+        var icoOtra = document.getElementById('input-otra-cat-icono').value.trim() || '✨';
+        if (!nomOtra || nomOtra.length < 3) {
+          toast('Ingresá un nombre válido para la nueva categoría (mínimo 3 caracteres).', true);
+          ocupado(btn, !verificado);
+          return;
+        }
+        var rCat = await api('/categorias', {
+          metodo: 'POST',
+          cuerpo: { nombre: nomOtra, icono: icoOtra },
+        });
+        idCatFinal = rCat.id_categoria;
+        await cargarCategoriasSelect(idCatFinal);
+      } else {
+        idCatFinal = Number(catVal);
+      }
+
       await api('/servicios', { metodo: 'POST', cuerpo: {
-        id_categoria: Number(document.getElementById('categoria').value),
+        id_categoria: idCatFinal,
         descripcion: document.getElementById('descripcion').value.trim() || null,
         tarifa: document.getElementById('tarifa').value,
         disponibilidad: franjas,
       } });
       toast('¡Servicio publicado!');
       e.target.reset();
+      var wrapOtra = document.getElementById('campo-otra-cat-prestador');
+      if (wrapOtra) wrapOtra.classList.add('oculto');
       montarEditorDisponibilidad(document.getElementById('editor-horarios'));
       await cargarServicios();
     } catch (err) { toast(err.message, true); }

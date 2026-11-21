@@ -31,7 +31,11 @@ CREATE TABLE usuario (
     telefono       VARCHAR(30),
     tipo_cuenta    ENUM('cliente','prestador','administrador') NOT NULL,
     fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    estado         ENUM('activo','suspendido') NOT NULL DEFAULT 'activo'
+    estado         ENUM('activo','suspendido') NOT NULL DEFAULT 'activo',
+    foto_perfil    VARCHAR(255) NULL DEFAULT NULL,
+    biografia      VARCHAR(200) NULL DEFAULT NULL,
+    fecha_ultimo_cambio_nombre DATETIME NULL DEFAULT NULL,
+    redes_sociales TEXT NULL DEFAULT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE cliente (
@@ -85,7 +89,10 @@ CREATE TABLE documentacion_verificacion (
 CREATE TABLE categoria_servicio (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     nombre       VARCHAR(80) NOT NULL UNIQUE,
-    descripcion  VARCHAR(200)
+    descripcion  VARCHAR(200),
+    icono        VARCHAR(50) DEFAULT '🧹',
+    estado       ENUM('activa','propuesta','inactiva') NOT NULL DEFAULT 'activa',
+    solicitada_por INT NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE servicio_ofrecido (

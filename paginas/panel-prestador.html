@@ -164,6 +164,14 @@
           <div class="campo"><label for="categoria">Categoría</label><select id="categoria" required></select></div>
           <div class="campo"><label for="tarifa">Tarifa por hora ($)</label><input type="number" id="tarifa" min="1" step="any" required></div>
         </div>
+        <div id="campo-otra-cat-prestador" class="campo oculto" style="background:var(--verde-fondo); padding:12px; border-radius:8px; border:1px solid var(--verde-borde); margin-bottom:12px;">
+          <label for="input-otra-cat-nombre" style="font-weight:600; color:var(--verde-oscuro);">Especificar nueva categoría de servicio</label>
+          <div class="fila" style="gap:8px; margin-top:4px;">
+            <input id="input-otra-cat-icono" style="width:55px; text-align:center;" value="✨" maxlength="4" title="Icono emoji">
+            <input id="input-otra-cat-nombre" placeholder="Ej: Limpieza de tapizados, Cuidado de mascotas, Pulido..." style="flex:1;" maxlength="80">
+          </div>
+          <small class="muted" style="display:block; margin-top:4px;">Al publicar, esta nueva categoría se guardará en la base de datos y quedará disponible para que otros usuarios la elijan.</small>
+        </div>
         <div class="campo"><label for="descripcion">Descripción</label><textarea id="descripcion" maxlength="2000" placeholder="Qué incluye tu servicio, si llevás tus productos, etc."></textarea></div>
         <label>Días y horarios en los que atendés</label>
         <div id="editor-horarios" style="margin-bottom:14px"></div>

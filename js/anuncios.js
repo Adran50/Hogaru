@@ -24,15 +24,40 @@
     tabMisAnuncios.classList.remove('oculto');
   }
 
-  async function cargarCategorias() {
+  async function cargarCategorias(selId) {
     try {
       categorias = await api('/categorias');
-      var opts = categorias.map(function (c) {
+      var optsFiltro = categorias.map(function (c) {
         return '<option value="' + c.id_categoria + '">' + esc(c.icono || '🧹') + ' ' + esc(c.nombre) + '</option>';
       }).join('');
-      filtroCat.innerHTML = '<option value="">Todas las categorías</option>' + opts;
-      document.getElementById('pub-categoria').innerHTML = opts;
+      filtroCat.innerHTML = '<option value="">Todas las categorías</option>' + optsFiltro;
+
+      var optsPub = categorias.map(function (c) {
+        return '<option value="' + c.id_categoria + '">' + esc(c.icono || '🧹') + ' ' + esc(c.nombre) + '</option>';
+      });
+      optsPub.push('<option value="otros">✨ Otros (especificar nueva categoría)...</option>');
+      var selPub = document.getElementById('pub-categoria');
+      selPub.innerHTML = optsPub.join('');
+      if (selId) selPub.value = String(selId);
+      var wrapOtra = document.getElementById('campo-otra-cat-anuncio');
+      if (wrapOtra) wrapOtra.classList.toggle('oculto', selPub.value !== 'otros');
     } catch (e) { /* silencioso */ }
+  }
+
+  var selPubCat = document.getElementById('pub-categoria');
+  if (selPubCat) {
+    selPubCat.addEventListener('change', function () {
+      var wrapOtra = document.getElementById('campo-otra-cat-anuncio');
+      if (wrapOtra) {
+        if (this.value === 'otros') {
+          wrapOtra.classList.remove('oculto');
+          var inp = document.getElementById('input-otra-cat-anuncio-nombre');
+          if (inp) inp.focus();
+        } else {
+          wrapOtra.classList.add('oculto');
+        }
+      }
+    });
   }
 
   async function cargarBolsa() {
@@ -186,9 +211,29 @@
     var btn = document.getElementById('btn-confirmar-publicar');
     ocupado(btn, true);
     try {
+      var catVal = document.getElementById('pub-categoria').value;
+      var idCatFinal = null;
+      if (catVal === 'otros') {
+        var nomOtra = document.getElementById('input-otra-cat-anuncio-nombre').value.trim();
+        var icoOtra = document.getElementById('input-otra-cat-anuncio-icono').value.trim() || '✨';
+        if (!nomOtra || nomOtra.length < 3) {
+          toast('Por favor escribí un nombre válido para la nueva categoría (mín. 3 caracteres).', true);
+          ocupado(btn, false);
+          return;
+        }
+        var rCat = await api('/categorias', {
+          metodo: 'POST',
+          cuerpo: { nombre: nomOtra, icono: icoOtra },
+        });
+        idCatFinal = rCat.id_categoria;
+        await cargarCategorias(idCatFinal);
+      } else {
+        idCatFinal = Number(catVal);
+      }
+
       var cuerpo = {
         titulo: document.getElementById('pub-titulo').value.trim(),
-        id_categoria: Number(document.getElementById('pub-categoria').value),
+        id_categoria: idCatFinal,
         presupuesto: Number(document.getElementById('pub-presupuesto').value),
         fecha_servicio: new Date(document.getElementById('pub-fecha').value).toISOString(),
         duracion_horas: Number(document.getElementById('pub-duracion').value),
@@ -198,6 +243,8 @@
       await api('/anuncios', { metodo: 'POST', cuerpo: cuerpo });
       toast('¡Aviso publicado con éxito en la Bolsa de Trabajos!');
       modalPublicar.classList.add('oculto');
+      var wrapOtra = document.getElementById('campo-otra-cat-anuncio');
+      if (wrapOtra) wrapOtra.classList.add('oculto');
       tabMisAnuncios.click();
     } catch (err) {
       toast(err.message, true);

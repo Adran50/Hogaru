@@ -135,6 +135,25 @@ h3 { font-size: 1.12rem; line-height: 1.35; }
   transform: rotate(10deg) scale(1.08);
 }
 
+.btn-hamburguesa {
+  display: none;
+  background: transparent;
+  border: 1.5px solid var(--borde, var(--gris-claro));
+  border-radius: 8px;
+  font-size: 1.35rem;
+  color: var(--texto-principal);
+  cursor: pointer;
+  padding: 5px 12px;
+  line-height: 1;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.btn-hamburguesa:hover {
+  background: var(--fondo);
+  border-color: var(--verde);
+}
+
 .btn-tema {
   background: transparent;
   border: 1.5px solid var(--gris-claro);
@@ -972,27 +991,145 @@ tr.fila-link:hover td {
 }
 
 /* ============================================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN (MÓVILES, TABLETS Y ESCRITORIO)
    ============================================================ */
 @media (max-width: 860px) {
   .dos-col { grid-template-columns: 1fr; }
   .lateral { position: static; }
   .metricas-hero { gap: 16px; padding: 12px 18px; }
   .hero h1 { font-size: 2.1rem; }
+  .grilla-3, .grilla-4 { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+}
+
+@media (max-width: 768px) {
+  /* Barra de navegación móvil con menú hamburguesa */
+  .btn-hamburguesa { display: flex; }
+  .navbar-interna {
+    position: relative;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .nav-links {
+    display: none;
+    width: 100%;
+    order: 4;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 0 6px;
+    border-top: 1px solid var(--borde);
+    margin-top: 6px;
+  }
+  .navbar-interna.menu-movil-abierto .nav-links {
+    display: flex;
+    animation: fadeIn 0.25s ease;
+  }
+  .nav-links a {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--fondo);
+    display: block;
+    width: 100%;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+  }
+  .nav-derecha {
+    margin-left: auto;
+  }
+
+  /* Ajuste de envoltorios y contenedores */
+  .contenedor {
+    padding: 18px 14px;
+  }
+  .panel {
+    padding: 20px 16px;
+  }
+  .grilla-2, .grilla-3, .grilla-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tablas adaptables para celulares con desplazamiento horizontal suave */
+  .tabla-envoltorio {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+    border: 1px solid var(--borde);
+    margin-bottom: 12px;
+  }
+  table {
+    min-width: 580px;
+  }
+
+  /* Modales optimizados para pantallas táctiles */
+  .modal-envoltorio {
+    padding: 12px;
+  }
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    padding: 18px 16px !important;
+    border-radius: 12px !important;
+    overflow-y: auto !important;
+  }
+
+  /* Controles y tarjetas */
+  .fila-entre {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs .chip {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
 }
 
 @media (max-width: 640px) {
-  h1 { font-size: 1.7rem; }
-  .hero { padding: 44px 16px 36px; }
-  .hero h1 { font-size: 1.8rem; }
-  .hero p { font-size: 0.98rem; }
-  .grilla-2 { grid-template-columns: 1fr; }
-  .nav-links { order: 3; flex-basis: 100%; justify-content: center; }
-  .buscador select { border-left: none; border-top: 1.5px solid var(--gris-claro); }
+  h1 { font-size: 1.65rem; }
+  h2 { font-size: 1.3rem; }
+  .hero { padding: 36px 14px 28px; }
+  .hero h1 { font-size: 1.7rem; }
+  .hero p { font-size: 0.95rem; }
+  .buscador select { border-left: none; border-top: 1.5px solid var(--gris-claro); width: 100%; }
+  .buscador { flex-direction: column; width: 100%; }
+  .buscador input { width: 100%; }
+  .buscador button { width: 100%; }
   .metricas-hero { flex-direction: column; gap: 10px; border-radius: var(--radio); width: 100%; }
   .metrica-separador { width: 40px; height: 1px; }
   .franja { grid-template-columns: 1fr 1fr; }
   .franja .campo-check { grid-column: 1 / -1; }
+  .anuncio-card { padding: 14px; }
+  .anuncio-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .anuncio-precio { align-self: flex-start; }
+}
+
+@media (max-width: 480px) {
+  .logo { font-size: 1.35rem; }
+  .logo-img { width: 30px; height: 30px; }
+  .btn-avatar-nav .nav-usuario-nombre { display: none; }
+  .btn { min-height: 40px; }
+  .btn-chico { min-height: 34px; }
+  input, select, textarea {
+    font-size: 16px !important; /* Previene auto-zoom molesto en celulares */
+  }
+  .fila-red-item {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 6px;
+    padding: 8px;
+    background: var(--fondo);
+    border-radius: 8px;
+  }
+  .fila-red-item .red-titulo,
+  .fila-red-item .red-url {
+    width: 100% !important;
+  }
 }
 
 /* ============================================================

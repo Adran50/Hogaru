@@ -200,8 +200,8 @@ function renderNavbar() {
             '<span class="dropdown-globo oculto" id="dropdown-globo">0</span>' +
           '</a>' +
           '<button type="button" class="dropdown-item" id="dropdown-btn-cambiar-foto">' +
-            '<span class="dropdown-item-icono">📷</span>' +
-            '<span class="dropdown-item-texto">Cambiar foto de perfil</span>' +
+            '<span class="dropdown-item-icono">👤</span>' +
+            '<span class="dropdown-item-texto">Mi perfil y foto</span>' +
           '</button>' +
           rolItemHtml +
           '<div class="dropdown-separador"></div>' +
@@ -223,10 +223,21 @@ function renderNavbar() {
     '<div class="navbar-interna">' +
     '<a class="logo" href="' + RAIZ + 'index.html">' +
       '<img src="' + RAIZ + 'assets/logo.png" alt="Hogaru" class="logo-img">' +
-      'Hoga<span>ru</span>' +
+      'Hogaru' +
     '</a>' +
-    '<nav class="nav-links">' + linksHtml + '</nav>' +
-    '<div class="nav-derecha">' + derecha + '</div></div>';
+    '<button type="button" class="btn-hamburguesa" id="btn-hamburguesa" aria-label="Abrir menú" aria-expanded="false">☰</button>' +
+    '<nav class="nav-links" id="nav-links">' + linksHtml + '</nav>' +
+    '<div class="nav-derecha" id="nav-derecha">' + derecha + '</div></div>';
+
+  var btnHam = document.getElementById('btn-hamburguesa');
+  if (btnHam) {
+    btnHam.addEventListener('click', function () {
+      var navInt = cont.querySelector('.navbar-interna');
+      var abierto = navInt.classList.toggle('menu-movil-abierto');
+      btnHam.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+      btnHam.textContent = abierto ? '✕' : '☰';
+    });
+  }
 
   var btnAvatar = document.getElementById('btn-avatar-menu');
   var dropPerfil = document.getElementById('dropdown-perfil');
@@ -315,9 +326,10 @@ async function actualizarGlobo() {
 }
 
 // ---------- modal de perfil de usuario ----------
-function abrirModalPerfil() {
+async function abrirModalPerfil() {
   var u = Sesion.usuario();
   if (!u) return;
+
   var idModal = 'modal-mi-perfil-global';
   var modal = document.getElementById(idModal);
   if (!modal) {
@@ -325,22 +337,70 @@ function abrirModalPerfil() {
     modal.id = idModal;
     modal.className = 'modal-envoltorio oculto';
     modal.innerHTML =
-      '<div class="modal panel" style="max-width:440px; width:95%;">' +
-        '<div class="fila-entre" style="margin-bottom:12px">' +
-          '<h2 style="margin:0">Mi Perfil</h2>' +
+      '<div class="modal panel" style="max-width:560px; width:95%; max-height:90vh; overflow-y:auto; padding:24px;">' +
+        '<div class="fila-entre" style="margin-bottom:14px; border-bottom:1px solid var(--borde); padding-bottom:10px;">' +
+          '<h2 style="margin:0; font-size:1.35rem">Mi Perfil</h2>' +
           '<button type="button" class="btn btn-borde btn-chico" id="modal-perfil-cerrar">✕</button>' +
         '</div>' +
-        '<div style="text-align:center; margin:16px 0;" id="modal-perfil-avatar-preview"></div>' +
-        '<h3 style="text-align:center; margin:0 0 4px;" id="modal-perfil-nombre-txt"></h3>' +
-        '<p class="muted" style="text-align:center; margin:0 0 16px; font-size:0.9rem;" id="modal-perfil-rol-txt"></p>' +
-        '<hr style="border:0; border-top:1px solid var(--borde); margin:16px 0">' +
-        '<h4 style="margin:0 0 8px; font-size:0.95rem">Foto de perfil</h4>' +
-        '<p class="muted" style="font-size:0.85rem; margin-top:0">Subí una foto en formato JPG, PNG o WebP (máx 10 MB).</p>' +
-        '<form id="form-modal-foto-perfil">' +
-          '<input type="file" id="modal-input-foto" accept="image/jpeg,image/png,image/webp" required style="width:100%; margin-bottom:12px">' +
-          '<div class="fila" style="gap:10px; justify-content:space-between">' +
-            '<button class="btn btn-claro btn-chico" type="submit" id="btn-modal-guardar-foto">Guardar foto</button>' +
-            '<button class="btn btn-borde btn-chico" type="button" id="btn-modal-quitar-foto" style="color:var(--peligro); border-color:var(--peligro)">Quitar foto</button>' +
+
+        '<!-- Encabezado de perfil y avatar -->' +
+        '<div style="text-align:center; margin-bottom:18px;">' +
+          '<div id="modal-perfil-avatar-preview" style="margin-bottom:8px"></div>' +
+          '<h3 style="margin:0 0 4px;" id="modal-perfil-nombre-txt"></h3>' +
+          '<p class="muted" style="margin:0; font-size:0.88rem;" id="modal-perfil-rol-txt"></p>' +
+        '</div>' +
+
+        '<!-- Foto de perfil -->' +
+        '<details style="margin-bottom:16px; border:1px solid var(--borde); border-radius:10px; padding:12px; background:var(--fondo);">' +
+          '<summary style="font-weight:600; cursor:pointer; color:var(--verde-oscuro);">📷 Cambiar o subir foto de perfil</summary>' +
+          '<div style="margin-top:12px;">' +
+            '<p class="muted" style="font-size:0.82rem; margin:0 0 10px;">Formatos admitidos: JPG, PNG, WebP (máx. 10 MB).</p>' +
+            '<form id="form-modal-foto-perfil">' +
+              '<input type="file" id="modal-input-foto" accept="image/jpeg,image/png,image/webp" required style="width:100%; margin-bottom:10px">' +
+              '<div class="fila" style="gap:10px; justify-content:space-between; flex-wrap:wrap;">' +
+                '<button class="btn btn-claro btn-chico" type="submit" id="btn-modal-guardar-foto">Guardar foto</button>' +
+                '<button class="btn btn-borde btn-chico" type="button" id="btn-modal-quitar-foto" style="color:var(--peligro); border-color:var(--peligro);">Quitar foto actual</button>' +
+              '</div>' +
+            '</form>' +
+          '</div>' +
+        '</details>' +
+
+        '<!-- Formulario de datos personales -->' +
+        '<form id="form-modal-perfil-datos">' +
+          '<div class="grilla-2" style="margin-bottom:6px;">' +
+            '<div class="campo">' +
+              '<label for="modal-input-nombre">Nombre</label>' +
+              '<input id="modal-input-nombre" required minlength="1" maxlength="60">' +
+            '</div>' +
+            '<div class="campo">' +
+              '<label for="modal-input-apellido">Apellido</label>' +
+              '<input id="modal-input-apellido" required minlength="1" maxlength="60">' +
+            '</div>' +
+          '</div>' +
+          '<div id="modal-nombre-aviso" style="font-size:0.82rem; margin-bottom:14px; padding:8px 12px; border-radius:6px;"></div>' +
+
+          '<!-- Biografía (máximo 200 caracteres) -->' +
+          '<div class="campo" style="margin-bottom:16px;">' +
+            '<div class="fila-entre" style="margin-bottom:4px;">' +
+              '<label for="modal-input-bio">Biografía / Presentación</label>' +
+              '<span id="modal-bio-contador" style="font-size:0.8rem; color:var(--gris); font-weight:600;">0/200</span>' +
+            '</div>' +
+            '<textarea id="modal-input-bio" maxlength="200" rows="3" placeholder="Contanos brevemente sobre vos, tu experiencia o tus labores en el hogar (máx. 200 caracteres)..." style="width:100%; resize:vertical; min-height:75px;"></textarea>' +
+          '</div>' +
+
+          '<!-- Redes Sociales (hasta 5 links funcionales) -->' +
+          '<div style="margin-bottom:18px;">' +
+            '<div class="fila-entre" style="margin-bottom:8px;">' +
+              '<label style="font-weight:600; font-size:0.95rem;">Redes Sociales y Enlaces (máx. 5)</label>' +
+              '<span id="modal-redes-contador" style="font-size:0.8rem; color:var(--gris); font-weight:600;">0/5</span>' +
+            '</div>' +
+            '<div id="modal-redes-lista" style="display:flex; flex-direction:column; gap:8px; margin-bottom:10px;"></div>' +
+            '<button type="button" class="btn btn-borde btn-chico" id="btn-modal-agregar-red" style="width:100%;">+ Agregar red social</button>' +
+          '</div>' +
+
+          '<div class="fila" style="justify-content:flex-end; gap:10px; margin-top:16px; border-top:1px solid var(--borde); padding-top:14px;">' +
+            '<button type="button" class="btn btn-borde btn-chico" id="btn-modal-perfil-cancelar">Cerrar</button>' +
+            '<button type="submit" class="btn btn-chico" id="btn-modal-guardar-perfil">Guardar cambios</button>' +
           '</div>' +
         '</form>' +
       '</div>';
@@ -349,10 +409,21 @@ function abrirModalPerfil() {
     modal.querySelector('#modal-perfil-cerrar').addEventListener('click', function () {
       modal.classList.add('oculto');
     });
+    modal.querySelector('#btn-modal-perfil-cancelar').addEventListener('click', function () {
+      modal.classList.add('oculto');
+    });
     modal.addEventListener('click', function (e) {
       if (e.target === modal) modal.classList.add('oculto');
     });
 
+    // Contador en vivo de biografía
+    var inputBio = modal.querySelector('#modal-input-bio');
+    var bioContador = modal.querySelector('#modal-bio-contador');
+    inputBio.addEventListener('input', function () {
+      bioContador.textContent = inputBio.value.length + '/200';
+    });
+
+    // Subida de foto
     var formFoto = modal.querySelector('#form-modal-foto-perfil');
     formFoto.addEventListener('submit', async function (ev) {
       ev.preventDefault();
@@ -379,7 +450,7 @@ function abrirModalPerfil() {
         toast('¡Foto de perfil actualizada con éxito!');
         input.value = '';
         renderNavbar();
-        actualizarVistaModalPerfil();
+        await cargarDatosModal();
       } catch (err) {
         toast(err.message, true);
       } finally {
@@ -387,6 +458,7 @@ function abrirModalPerfil() {
       }
     });
 
+    // Quitar foto
     var btnQuitar = modal.querySelector('#btn-modal-quitar-foto');
     btnQuitar.addEventListener('click', async function () {
       if (!confirm('¿Eliminar tu foto de perfil?')) return;
@@ -398,27 +470,178 @@ function abrirModalPerfil() {
         Sesion.guardar(Sesion.token(), user);
         toast('Foto de perfil eliminada.');
         renderNavbar();
-        actualizarVistaModalPerfil();
+        await cargarDatosModal();
       } catch (err) {
         toast(err.message, true);
       } finally {
         btnQuitar.disabled = false;
       }
     });
+
+    // Manejo dinámico de redes sociales
+    var redesContenedor = modal.querySelector('#modal-redes-lista');
+    var btnAgregarRed = modal.querySelector('#btn-modal-agregar-red');
+    var redesContador = modal.querySelector('#modal-redes-contador');
+
+    function actualizarContadorRedes() {
+      var cant = redesContenedor.querySelectorAll('.fila-red-item').length;
+      redesContador.textContent = cant + '/5';
+      btnAgregarRed.disabled = cant >= 5;
+    }
+
+    function agregarFilaRed(titulo, url) {
+      if (redesContenedor.querySelectorAll('.fila-red-item').length >= 5) {
+        toast('Podés agregar como máximo 5 redes sociales.', true);
+        return;
+      }
+      var fila = document.createElement('div');
+      fila.className = 'fila fila-red-item';
+      fila.style.cssText = 'gap:8px; align-items:center; flex-wrap:wrap;';
+      fila.innerHTML =
+        '<input class="red-titulo" placeholder="Ej: Instagram" style="flex:1; min-width:110px;" value="' + esc(titulo || '') + '" maxlength="50" required>' +
+        '<input class="red-url" placeholder="https://..." style="flex:2; min-width:160px;" value="' + esc(url || '') + '" maxlength="255" required>' +
+        '<a class="btn btn-borde btn-chico red-btn-probar" target="_blank" rel="noopener" title="Probar enlace" style="padding:4px 8px; text-decoration:none;">🔗</a>' +
+        '<button type="button" class="btn btn-peligro btn-chico red-btn-quitar" title="Eliminar" style="padding:4px 8px;">✕</button>';
+
+      var aProbar = fila.querySelector('.red-btn-probar');
+      var inputUrl = fila.querySelector('.red-url');
+      function updateHref() {
+        var val = inputUrl.value.trim();
+        if (val && !val.match(/^https?:\/\//i)) {
+          val = 'https://' + val;
+        }
+        aProbar.href = val || '#';
+      }
+      updateHref();
+      inputUrl.addEventListener('input', updateHref);
+
+      fila.querySelector('.red-btn-quitar').addEventListener('click', function () {
+        fila.remove();
+        actualizarContadorRedes();
+      });
+
+      redesContenedor.appendChild(fila);
+      actualizarContadorRedes();
+    }
+
+    btnAgregarRed.addEventListener('click', function () {
+      agregarFilaRed('', '');
+    });
+
+    // Guardar datos de perfil (Nombre, Apellido, Biografía, Redes)
+    var formDatos = modal.querySelector('#form-modal-perfil-datos');
+    formDatos.addEventListener('submit', async function (ev) {
+      ev.preventDefault();
+      var btnGuardar = modal.querySelector('#btn-modal-guardar-perfil');
+      var inputNombre = modal.querySelector('#modal-input-nombre');
+      var inputApellido = modal.querySelector('#modal-input-apellido');
+      var bioVal = inputBio.value.trim();
+
+      // Recolectar redes
+      var redesData = [];
+      var filas = redesContenedor.querySelectorAll('.fila-red-item');
+      for (var i = 0; i < filas.length; i++) {
+        var t = filas[i].querySelector('.red-titulo').value.trim();
+        var ulink = filas[i].querySelector('.red-url').value.trim();
+        if (t && ulink) {
+          if (!ulink.match(/^https?:\/\//i)) ulink = 'https://' + ulink;
+          redesData.push({ titulo: t, url: ulink });
+        }
+      }
+
+      var payload = {
+        biografia: bioVal || null,
+        redes_sociales: redesData,
+      };
+
+      if (!inputNombre.disabled) {
+        payload.nombre = inputNombre.value.trim();
+        payload.apellido = inputApellido.value.trim();
+      }
+
+      ocupado(btnGuardar, true);
+      try {
+        var res = await api('/auth/me', {
+          metodo: 'PUT',
+          cuerpo: payload,
+        });
+        toast('¡Perfil actualizado con éxito!');
+        var userActual = Sesion.usuario();
+        userActual.nombre = res.nombre;
+        userActual.apellido = res.apellido;
+        userActual.biografia = res.biografia;
+        userActual.redes_sociales = res.redes_sociales;
+        Sesion.guardar(Sesion.token(), userActual);
+        renderNavbar();
+        await cargarDatosModal();
+      } catch (err) {
+        toast(err.message, true);
+      } finally {
+        ocupado(btnGuardar, false);
+      }
+    });
   }
 
-  function actualizarVistaModalPerfil() {
-    var curUser = Sesion.usuario();
-    if (!curUser) return;
-    modal.querySelector('#modal-perfil-avatar-preview').innerHTML = renderAvatar(curUser.foto_perfil, curUser.nombre, 84);
-    modal.querySelector('#modal-perfil-nombre-txt').textContent = (curUser.nombre || '') + ' ' + (curUser.apellido || '');
-    var rolLabel = curUser.tipo_cuenta === 'prestador' ? 'Prestador de Servicios' : (curUser.tipo_cuenta === 'administrador' ? 'Administrador' : 'Cliente');
-    modal.querySelector('#modal-perfil-rol-txt').textContent = rolLabel + (curUser.email ? ' · ' + curUser.email : '');
-    var btnQuitar = modal.querySelector('#btn-modal-quitar-foto');
-    if (btnQuitar) btnQuitar.style.display = curUser.foto_perfil ? 'inline-block' : 'none';
+  // Carga y vincula los datos actuales del usuario al modal
+  async function cargarDatosModal() {
+    try {
+      var perfil = await api('/auth/me');
+      var curUser = Sesion.usuario();
+      if (!curUser) return;
+
+      modal.querySelector('#modal-perfil-avatar-preview').innerHTML = renderAvatar(perfil.foto_perfil, perfil.nombre, 84);
+      modal.querySelector('#modal-perfil-nombre-txt').textContent = (perfil.nombre || '') + ' ' + (perfil.apellido || '');
+      var rolLabel = perfil.tipo_cuenta === 'prestador' ? 'Prestador de Servicios' : (perfil.tipo_cuenta === 'administrador' ? 'Administrador' : 'Cliente');
+      modal.querySelector('#modal-perfil-rol-txt').textContent = rolLabel + (perfil.email ? ' · ' + perfil.email : '');
+
+      var btnQuitar = modal.querySelector('#btn-modal-quitar-foto');
+      if (btnQuitar) btnQuitar.style.display = perfil.foto_perfil ? 'inline-block' : 'none';
+
+      var inputNombre = modal.querySelector('#modal-input-nombre');
+      var inputApellido = modal.querySelector('#modal-input-apellido');
+      var avisoNombre = modal.querySelector('#modal-nombre-aviso');
+
+      inputNombre.value = perfil.nombre || '';
+      inputApellido.value = perfil.apellido || '';
+
+      if (perfil.puede_cambiar_nombre) {
+        inputNombre.disabled = false;
+        inputApellido.disabled = false;
+        avisoNombre.style.background = 'var(--verde-fondo)';
+        avisoNombre.style.color = 'var(--verde-oscuro)';
+        avisoNombre.innerHTML = '🛡️ <em>Podés cambiar tu nombre y apellido. Recordá que por seguridad antifraude solo se permite un cambio cada 2 semanas.</em>';
+      } else {
+        inputNombre.disabled = true;
+        inputApellido.disabled = true;
+        avisoNombre.style.background = 'rgba(239, 68, 68, 0.12)';
+        avisoNombre.style.color = 'var(--peligro)';
+        var dias = perfil.dias_para_cambio_nombre || 14;
+        avisoNombre.innerHTML = '🔒 <strong>Cambio de nombre bloqueado por 2 semanas:</strong> Podrás volver a modificar tu nombre y apellido en <strong>' + dias + ' día(s)</strong>.';
+      }
+
+      var inputBio = modal.querySelector('#modal-input-bio');
+      inputBio.value = perfil.biografia || '';
+      modal.querySelector('#modal-bio-contador').textContent = (perfil.biografia || '').length + '/200';
+
+      // Cargar redes
+      var redesContenedor = modal.querySelector('#modal-redes-lista');
+      redesContenedor.innerHTML = '';
+      var redes = perfil.redes_sociales || [];
+      if (Array.isArray(redes)) {
+        redes.forEach(function (r) {
+          agregarFilaRed(r.titulo, r.url);
+        });
+      }
+      var btnAgregarRed = modal.querySelector('#btn-modal-agregar-red');
+      modal.querySelector('#modal-redes-contador').textContent = redesContenedor.querySelectorAll('.fila-red-item').length + '/5';
+      btnAgregarRed.disabled = redesContenedor.querySelectorAll('.fila-red-item').length >= 5;
+
+    } catch (e) {
+      console.error('Error al cargar perfil en modal:', e);
+    }
   }
 
-  actualizarVistaModalPerfil();
+  await cargarDatosModal();
   modal.classList.remove('oculto');
 }
 

@@ -100,15 +100,28 @@
 
   // Bloque: Acerca del prestador
   var sobrePrestadorHtml = '';
-  if (servicio.biografia_prestador || servicio.zona_cobertura) {
+  if (servicio.biografia_prestador || servicio.zona_cobertura || (servicio.redes_sociales && servicio.redes_sociales.length)) {
+    var redesHtml = '';
+    if (servicio.redes_sociales && servicio.redes_sociales.length) {
+      redesHtml = '<div style="margin-top:14px; padding-top:10px; border-top:1px dashed var(--borde);">' +
+        '<span style="font-size:0.83rem; font-weight:600; color:var(--texto-secundario); display:block; margin-bottom:6px;">Redes y Enlaces del profesional:</span>' +
+        '<div class="fila" style="gap:8px; flex-wrap:wrap;">' +
+        servicio.redes_sociales.map(function (r) {
+          var urlLimpia = r.url.match(/^https?:\/\//i) ? r.url : 'https://' + r.url;
+          return '<a class="btn btn-borde btn-chico" href="' + esc(urlLimpia) + '" target="_blank" rel="noopener" style="font-size:0.82rem; text-decoration:none; padding:4px 10px;">🔗 ' + esc(r.titulo) + ' ↗</a>';
+        }).join('') +
+        '</div></div>';
+    }
+
     sobrePrestadorHtml = '<div class="panel">' +
       '<h2>Acerca de ' + esc(servicio.nombre_publico) + '</h2>' +
       (servicio.biografia_prestador ? '<p style="margin:0 0 12px; line-height:1.5">' + esc(servicio.biografia_prestador) + '</p>' : '') +
-      '<div class="fila" style="gap:14px; margin-top:8px; font-size:0.9rem">' +
+      '<div class="fila" style="gap:14px; margin-top:8px; font-size:0.9rem; flex-wrap:wrap;">' +
         '<span class="badge badge-aprobado" style="padding:4px 10px">✔ Prestador Verificado en Hogaru</span>' +
         (servicio.zona_cobertura ? '<span class="muted">📍 Zona: ' + esc(servicio.zona_cobertura) + '</span>' : '') +
         '<span class="muted">⭐ ' + (Number(servicio.puntuacion_promedio) > 0 ? Number(servicio.puntuacion_promedio).toFixed(1) + ' (' + prom.total + ' opiniones)' : 'Nuevo') + '</span>' +
       '</div>' +
+      redesHtml +
     '</div>';
   }
 

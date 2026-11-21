@@ -80,19 +80,21 @@
       '</div>';
 
     var tabla = cats.length ?
-      '<table><thead><tr><th>Icono</th><th>Nombre</th><th>Descripción</th><th>Estado</th><th>Servicios</th><th></th></tr></thead><tbody>' +
+      '<table><thead><tr><th>Icono</th><th>Nombre</th><th>Descripción</th><th>Estado</th><th>Servicios / Avisos</th><th></th></tr></thead><tbody>' +
       cats.map(function (c) {
-        var estadoBadge = badge(c.estado === 'activa' ? 'aprobado' : 'pendiente').replace('Aprobado', 'Activa').replace('Pendiente', 'Propuesta');
+        var estadoBadge = c.estado === 'activa'
+          ? '<span class="badge badge-aprobado">Activa</span>'
+          : (c.estado === 'propuesta' ? '<span class="badge badge-pendiente">Propuesta</span>' : '<span class="badge badge-peligro">Inactiva</span>');
         var acciones = '';
-        if (c.estado === 'propuesta') {
-          acciones += '<button class="btn btn-chico" data-aprobar-cat="' + c.id_categoria + '">Aprobar</button> ';
+        if (c.estado === 'propuesta' || c.estado === 'inactiva') {
+          acciones += '<button class="btn btn-chico" data-aprobar-cat="' + c.id_categoria + '">Activar</button> ';
         }
-        if (c.total_servicios === 0) {
-          acciones += '<button class="btn btn-peligro btn-chico" data-borrar-cat="' + c.id_categoria + '">Eliminar</button>';
-        }
+        var totalUsos = Number(c.total_servicios || 0) + Number(c.total_anuncios || 0);
+        acciones += '<button class="btn btn-peligro btn-chico" data-borrar-cat="' + c.id_categoria + '" data-nombre-cat="' + esc(c.nombre) + '" data-usos="' + totalUsos + '">Eliminar</button>';
+
         return '<tr><td><span style="font-size:1.3rem">' + esc(c.icono) + '</span></td><td><strong>' + esc(c.nombre) + '</strong>' +
           (c.solicitada_por_nombre ? '<br><span class="muted" style="font-size:0.8rem">Propuesta por: ' + esc(c.solicitada_por_nombre) + '</span>' : '') +
-          '</td><td>' + esc(c.descripcion || '—') + '</td><td>' + estadoBadge + '</td><td>' + c.total_servicios + '</td><td>' + acciones + '</td></tr>';
+          '</td><td>' + esc(c.descripcion || '—') + '</td><td>' + estadoBadge + '</td><td>' + (c.total_servicios || 0) + ' serv. / ' + (c.total_anuncios || 0) + ' avisos</td><td>' + acciones + '</td></tr>';
       }).join('') + '</tbody></table>' : '<p class="muted">No hay categorías cargadas.</p>';
 
     vista.innerHTML = formCrear + tabla;
@@ -146,9 +148,22 @@
         toast('Categoría aprobada y disponible en el catálogo.');
         mostrar();
       } else if (borrarCat) {
-        if (!confirm('¿Eliminar esta categoría?')) return;
-        await api('/admin/categorias/' + borrarCat.dataset.borrarCat, { metodo: 'DELETE' });
-        toast('Categoría eliminada.');
+        var idCat = borrarCat.dataset.borrarCat;
+        var nomCat = borrarCat.dataset.nombreCat || 'esta categoría';
+        var usos = Number(borrarCat.dataset.usos || 0);
+
+        if (usos > 0) {
+          var resp = confirm(
+            'La categoría "' + nomCat + '" tiene ' + usos + ' servicios/avisos vinculados.\n\n' +
+            '¿Deseás desactivarla para retirarla del catálogo de nuevas contrataciones sin romper el historial existente?'
+          );
+          if (!resp) return;
+        } else {
+          if (!confirm('¿Seguro que deseás eliminar permanentemente la categoría "' + nomCat + '"?')) return;
+        }
+
+        var rDel = await api('/admin/categorias/' + idCat, { metodo: 'DELETE' });
+        toast(rDel.mensaje || 'Categoría procesada con éxito.');
         mostrar();
       }
     } catch (e) { toast(e.message, true); }
