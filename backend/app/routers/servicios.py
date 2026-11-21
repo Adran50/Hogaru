@@ -1,9 +1,10 @@
 """Módulo de Servicios: catálogo, búsqueda con Haversine, filtros avanzados, portafolio y zonas."""
+import json
+import uuid
 from datetime import time, timedelta
 from decimal import Decimal
 from pathlib import Path
 from typing import Literal
-import uuid
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from pydantic import BaseModel, Field, model_validator
@@ -32,6 +33,7 @@ class CategoriaSugerirIn(BaseModel):
     nombre: str = Field(..., min_length=3, max_length=80)
     descripcion: str | None = Field(None, max_length=200)
     icono: str | None = Field("🧹", max_length=50)
+    confirmar: bool = Field(default=False)
 
 
 class ServicioIn(BaseModel):
@@ -88,38 +90,69 @@ def listar_categorias(db=Depends(get_db)):
 
 @router.post("/categorias/sugerir", status_code=201)
 def sugerir_categoria(datos: CategoriaSugerirIn, usuario=Depends(usuario_actual), db=Depends(get_db)):
-    """Cualquier usuario autenticado puede proponer una nueva categoría de trabajo."""
+    """Propone o confirma una nueva categoría en la plataforma."""
+    nom = datos.nombre.strip()
     existente = uno(
         db,
-        "SELECT id_categoria, estado FROM categoria_servicio WHERE LOWER(nombre) = LOWER(%s)",
-        (datos.nombre.strip(),),
+        "SELECT id_categoria, nombre, estado FROM categoria_servicio WHERE LOWER(nombre) = LOWER(%s)",
+        (nom,),
     )
     if existente:
+        if datos.confirmar and existente["estado"] != "activa":
+            actualizar(db, "UPDATE categoria_servicio SET estado = 'activa' WHERE id_categoria = %s", (existente["id_categoria"],))
+            db.commit()
+            return {
+                "id_categoria": existente["id_categoria"],
+                "nombre": existente["nombre"],
+                "estado": "activa",
+                "mensaje": f"Categoría '{existente['nombre']}' activada con éxito.",
+            }
         if existente["estado"] == "activa":
+            if datos.confirmar:
+                return {
+                    "id_categoria": existente["id_categoria"],
+                    "nombre": existente["nombre"],
+                    "estado": "activa",
+                    "mensaje": f"Categoría '{existente['nombre']}' lista para usar.",
+                }
             raise ReglaNegocioError("Esa categoría ya existe en la plataforma.")
         return {
             "id_categoria": existente["id_categoria"],
             "mensaje": "Esa categoría ya fue sugerida anteriormente y está en revisión.",
         }
 
+    estado_inicial = "activa" if datos.confirmar else "propuesta"
     id_cat = insertar(
         db,
         "INSERT INTO categoria_servicio (nombre, descripcion, icono, estado, solicitada_por) "
-        "VALUES (%s, %s, %s, 'propuesta', %s)",
+        "VALUES (%s, %s, %s, %s, %s)",
         (
-            datos.nombre.strip(),
+            nom,
             datos.descripcion.strip() if datos.descripcion else None,
             datos.icono or "🧹",
+            estado_inicial,
             usuario["id_usuario"],
         ),
     )
     db.commit()
+    msg = (
+        f"Nueva categoría '{nom}' confirmada y disponible para todos los usuarios."
+        if datos.confirmar
+        else "Categoría sugerida con éxito. Un administrador la revisará a la brevedad."
+    )
     return {
         "id_categoria": id_cat,
-        "nombre": datos.nombre.strip(),
-        "estado": "propuesta",
-        "mensaje": "Categoría sugerida con éxito. Un administrador la revisará a la brevedad.",
+        "nombre": nom,
+        "estado": estado_inicial,
+        "mensaje": msg,
     }
+
+
+@router.post("/categorias", status_code=201)
+def crear_categoria_directa(datos: CategoriaSugerirIn, usuario=Depends(usuario_actual), db=Depends(get_db)):
+    """Crea una categoría nueva desde 'Otros' directamente activa y disponible para todos."""
+    datos.confirmar = True
+    return sugerir_categoria(datos, usuario, db)
 
 
 @router.get("/servicios")
@@ -243,16 +276,27 @@ def detalle_servicio(id_servicio: int, db=Depends(get_db)):
     """Detalle completo de un servicio con su disponibilidad semanal configurada."""
     servicio = uno(
         db,
-        "SELECT v.*, so.id_categoria, so.descripcion, p.descripcion AS biografia_prestador, "
-        "p.estado_verificacion "
+        "SELECT v.*, so.id_categoria, so.descripcion, "
+        "       COALESCE(NULLIF(u.biografia, ''), p.descripcion) AS biografia_prestador, "
+        "       u.redes_sociales, p.estado_verificacion "
         "FROM v_prestadores_disponibles v "
         "JOIN servicio_ofrecido so ON so.id_servicio = v.id_servicio "
         "JOIN prestador p ON p.id_prestador = v.id_prestador "
+        "JOIN usuario u ON u.id_usuario = p.id_prestador "
         "WHERE v.id_servicio = %s",
         (id_servicio,),
     )
     if not servicio:
         raise NoEncontradoError("El servicio no existe o no está disponible públicamente")
+
+    redes_raw = servicio.get("redes_sociales")
+    redes_lista = []
+    if redes_raw:
+        try:
+            redes_lista = json.loads(redes_raw) if isinstance(redes_raw, str) else redes_raw
+        except Exception:
+            redes_lista = []
+    servicio["redes_sociales"] = redes_lista
 
     franjas = todos(
         db,

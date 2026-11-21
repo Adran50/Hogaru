@@ -4,7 +4,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 
-from ..db import actualizar, get_db, todos, uno
+from ..db import actualizar, get_db, insertar, todos, uno
 from ..deps import solo_admin
 from ..errores import ConflictoError, NoEncontradoError, ReglaNegocioError
 from ..integraciones import background_check_service, payment_service
@@ -290,15 +290,16 @@ def admin_listar_categorias(
     admin=Depends(solo_admin),
     db=Depends(get_db),
 ):
-    """Lista todas las categorías con su estado (activa o propuesta) y recuento de servicios."""
+    """Lista todas las categorías con su estado (activa, propuesta o inactiva) y recuento de servicios y anuncios."""
     return todos(
         db,
         "SELECT c.id_categoria, c.nombre, c.descripcion, COALESCE(c.icono, '🧹') AS icono, c.estado, "
         "       c.solicitada_por, CONCAT(u.nombre, ' ', u.apellido) AS solicitada_por_nombre, "
-        "       (SELECT COUNT(*) FROM servicio_ofrecido so WHERE so.id_categoria = c.id_categoria) AS total_servicios "
+        "       (SELECT COUNT(*) FROM servicio_ofrecido so WHERE so.id_categoria = c.id_categoria) AS total_servicios, "
+        "       (SELECT COUNT(*) FROM anuncio_trabajo a WHERE a.id_categoria = c.id_categoria) AS total_anuncios "
         "FROM categoria_servicio c "
         "LEFT JOIN usuario u ON u.id_usuario = c.solicitada_por "
-        "ORDER BY c.estado DESC, c.nombre ASC",
+        "ORDER BY FIELD(c.estado, 'propuesta', 'activa', 'inactiva'), c.nombre ASC",
     )
 
 
@@ -373,20 +374,55 @@ def admin_aprobar_categoria(
 @router.delete("/categorias/{id_categoria}")
 def admin_eliminar_categoria(
     id_categoria: int,
+    reasignar_a: int | None = Query(None, description="ID de categoría destino para reasignar servicios y anuncios"),
     admin=Depends(solo_admin),
     db=Depends(get_db),
 ):
-    """Elimina una categoría si no tiene servicios o anuncios vinculados."""
-    en_uso = uno(
+    """Elimina o desactiva una categoría redundante. Si tiene elementos asociados, permite reasignarlos o desactivarla."""
+    cat = uno(db, "SELECT id_categoria, nombre FROM categoria_servicio WHERE id_categoria = %s", (id_categoria,))
+    if not cat:
+        raise NoEncontradoError("La categoría no existe.")
+
+    en_uso_servicios = uno(
         db,
         "SELECT COUNT(*) AS total FROM servicio_ofrecido WHERE id_categoria = %s",
         (id_categoria,),
-    )
-    if en_uso and en_uso["total"] > 0:
-        raise ReglaNegocioError(
-            "No se puede eliminar la categoría porque tiene servicios ofrecidos vinculados."
-        )
+    )["total"]
+
+    en_uso_anuncios = uno(
+        db,
+        "SELECT COUNT(*) AS total FROM anuncio_trabajo WHERE id_categoria = %s",
+        (id_categoria,),
+    )["total"]
+
+    total_usos = en_uso_servicios + en_uso_anuncios
+
+    if total_usos > 0:
+        if reasignar_a and reasignar_a != id_categoria:
+            destino = uno(
+                db,
+                "SELECT id_categoria, nombre FROM categoria_servicio WHERE id_categoria = %s AND estado = 'activa'",
+                (reasignar_a,),
+            )
+            if not destino:
+                raise ReglaNegocioError("La categoría de destino para reasignar no existe o no está activa.")
+            actualizar(db, "UPDATE servicio_ofrecido SET id_categoria = %s WHERE id_categoria = %s", (reasignar_a, id_categoria))
+            actualizar(db, "UPDATE anuncio_trabajo SET id_categoria = %s WHERE id_categoria = %s", (reasignar_a, id_categoria))
+            actualizar(db, "DELETE FROM categoria_servicio WHERE id_categoria = %s", (id_categoria,))
+            db.commit()
+            return {
+                "id_categoria": id_categoria,
+                "mensaje": f"Categoría '{cat['nombre']}' eliminada. Sus {total_usos} elemento(s) fueron reasignados a '{destino['nombre']}'.",
+            }
+        else:
+            # Desactivación segura (borrado lógico) para categorías redundantes con historial
+            actualizar(db, "UPDATE categoria_servicio SET estado = 'inactiva' WHERE id_categoria = %s", (id_categoria,))
+            db.commit()
+            return {
+                "id_categoria": id_categoria,
+                "mensaje": f"La categoría '{cat['nombre']}' fue desactivada y retirada del catálogo general para nuevos usos.",
+            }
 
     actualizar(db, "DELETE FROM categoria_servicio WHERE id_categoria = %s", (id_categoria,))
     db.commit()
-    return {"id_categoria": id_categoria, "mensaje": "Categoría eliminada."}
+    return {"id_categoria": id_categoria, "mensaje": f"Categoría '{cat['nombre']}' eliminada correctamente."}

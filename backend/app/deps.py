@@ -27,7 +27,8 @@ def usuario_actual(
 
     usuario = uno(
         db,
-        "SELECT id_usuario, nombre, apellido, email, tipo_cuenta, estado, foto_perfil "
+        "SELECT id_usuario, nombre, apellido, email, tipo_cuenta, estado, foto_perfil, "
+        "       biografia, fecha_ultimo_cambio_nombre, redes_sociales "
         "FROM usuario WHERE id_usuario = %s",
         (id_usuario,),
     )

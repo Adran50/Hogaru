@@ -1,5 +1,7 @@
 """Módulo de Usuarios y Autenticación: registro, login, perfil y cambio de contraseña."""
+import json
 import uuid
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Literal
 
@@ -37,11 +39,18 @@ class LoginIn(BaseModel):
     password: str
 
 
+class RedSocialItem(BaseModel):
+    titulo: str = Field(min_length=1, max_length=50)
+    url: str = Field(min_length=1, max_length=255)
+
+
 class PerfilUpdateIn(BaseModel):
     nombre: str | None = Field(None, min_length=1, max_length=60)
     apellido: str | None = Field(None, min_length=1, max_length=60)
     telefono: str | None = Field(None, max_length=30)
     foto_perfil: str | None = Field(None, max_length=255)
+    biografia: str | None = Field(None, max_length=200)
+    redes_sociales: list[RedSocialItem] | None = Field(None, max_length=5)
     direccion: str | None = Field(None, max_length=200)
     descripcion: str | None = Field(None, max_length=2000)
     latitud: float | None = Field(None, ge=-90, le=90)
@@ -51,6 +60,22 @@ class PerfilUpdateIn(BaseModel):
 class CambiarPasswordIn(BaseModel):
     password_actual: str
     password_nueva: str = Field(min_length=8, max_length=72)
+
+
+def _calcular_info_cambio_nombre(fecha_ultimo_cambio) -> tuple[bool, int]:
+    """Determina si el usuario puede cambiar su nombre (cooldown de 14 días) y cuántos días faltan."""
+    if not fecha_ultimo_cambio:
+        return True, 0
+    if isinstance(fecha_ultimo_cambio, str):
+        try:
+            fecha_ultimo_cambio = datetime.fromisoformat(fecha_ultimo_cambio)
+        except Exception:
+            return True, 0
+    delta = datetime.now() - fecha_ultimo_cambio
+    if delta.days >= 14:
+        return True, 0
+    dias_restantes = 14 - delta.days
+    return False, max(1, dias_restantes)
 
 
 def _obtener_perfil_completo(db, usuario: dict) -> dict:
@@ -79,6 +104,16 @@ def _obtener_perfil_completo(db, usuario: dict) -> dict:
             (id_usuario,),
         )
 
+    puede_cambiar, dias_restantes = _calcular_info_cambio_nombre(usuario.get("fecha_ultimo_cambio_nombre"))
+
+    redes_raw = usuario.get("redes_sociales")
+    redes_lista = []
+    if redes_raw:
+        try:
+            redes_lista = json.loads(redes_raw) if isinstance(redes_raw, str) else redes_raw
+        except Exception:
+            redes_lista = []
+
     # Asegurar que nunca se filtre contraseña
     usuario_salida = {
         "id_usuario": usuario["id_usuario"],
@@ -88,6 +123,11 @@ def _obtener_perfil_completo(db, usuario: dict) -> dict:
         "tipo_cuenta": usuario["tipo_cuenta"],
         "estado": usuario.get("estado", "activo"),
         "foto_perfil": usuario.get("foto_perfil"),
+        "biografia": usuario.get("biografia") or "",
+        "redes_sociales": redes_lista,
+        "puede_cambiar_nombre": puede_cambiar,
+        "dias_para_cambio_nombre": dias_restantes,
+        "fecha_ultimo_cambio_nombre": str(usuario["fecha_ultimo_cambio_nombre"]) if usuario.get("fecha_ultimo_cambio_nombre") else None,
         "perfil": perfil_extra,
     }
     if "telefono" in usuario:
@@ -138,7 +178,8 @@ def login(datos: LoginIn, db=Depends(get_db)):
     """Autentica con email y contraseña, devolviendo token JWT y datos de sesión."""
     usuario = uno(
         db,
-        "SELECT id_usuario, nombre, apellido, email, contrasena, tipo_cuenta, estado, foto_perfil "
+        "SELECT id_usuario, nombre, apellido, email, contrasena, tipo_cuenta, estado, foto_perfil, "
+        "       biografia, fecha_ultimo_cambio_nombre, redes_sociales "
         "FROM usuario WHERE email = %s",
         (datos.email.lower(),),
     )
@@ -146,6 +187,15 @@ def login(datos: LoginIn, db=Depends(get_db)):
         raise NoAutorizadoError("Email o contraseña incorrectos")
     if usuario["estado"] != "activo":
         raise AccesoDenegadoError("La cuenta está suspendida")
+
+    puede_cambiar, dias_restantes = _calcular_info_cambio_nombre(usuario.get("fecha_ultimo_cambio_nombre"))
+    redes_raw = usuario.get("redes_sociales")
+    redes_lista = []
+    if redes_raw:
+        try:
+            redes_lista = json.loads(redes_raw) if isinstance(redes_raw, str) else redes_raw
+        except Exception:
+            redes_lista = []
 
     return {
         "access_token": crear_token(usuario["id_usuario"], usuario["tipo_cuenta"]),
@@ -157,6 +207,10 @@ def login(datos: LoginIn, db=Depends(get_db)):
             "email": usuario["email"],
             "tipo_cuenta": usuario["tipo_cuenta"],
             "foto_perfil": usuario.get("foto_perfil"),
+            "biografia": usuario.get("biografia") or "",
+            "redes_sociales": redes_lista,
+            "puede_cambiar_nombre": puede_cambiar,
+            "dias_para_cambio_nombre": dias_restantes,
         },
     }
 
@@ -165,10 +219,10 @@ def login(datos: LoginIn, db=Depends(get_db)):
 @router.get("/perfil")
 def ver_perfil(usuario=Depends(usuario_actual), db=Depends(get_db)):
     """Devuelve los datos del perfil del usuario actualmente autenticado."""
-    # Obtenemos los campos completos del usuario actual
     u_completo = uno(
         db,
-        "SELECT id_usuario, nombre, apellido, email, telefono, tipo_cuenta, estado, foto_perfil "
+        "SELECT id_usuario, nombre, apellido, email, telefono, tipo_cuenta, estado, foto_perfil, "
+        "       biografia, fecha_ultimo_cambio_nombre, redes_sociales "
         "FROM usuario WHERE id_usuario = %s",
         (usuario["id_usuario"],),
     )
@@ -178,20 +232,45 @@ def ver_perfil(usuario=Depends(usuario_actual), db=Depends(get_db)):
 @router.put("/me")
 @router.put("/perfil")
 def actualizar_perfil(datos: PerfilUpdateIn, usuario=Depends(usuario_actual), db=Depends(get_db)):
-    """Actualiza datos personales, de contacto y perfil de cliente/prestador."""
+    """Actualiza datos personales, biografía, redes sociales y perfil específico."""
     id_usuario = usuario["id_usuario"]
     tipo = usuario["tipo_cuenta"]
 
-    # 1. Actualizar tabla base 'usuario' si corresponde
+    # 1. Regla de 2 semanas para cambio de nombre y apellido
+    nombre_nuevo = datos.nombre.strip() if datos.nombre is not None else None
+    apellido_nuevo = datos.apellido.strip() if datos.apellido is not None else None
+    cambio_identidad = False
+
+    if (nombre_nuevo is not None and nombre_nuevo != usuario["nombre"]) or \
+       (apellido_nuevo is not None and apellido_nuevo != usuario["apellido"]):
+        cambio_identidad = True
+
+    if cambio_identidad:
+        puede_cambiar, dias_restantes = _calcular_info_cambio_nombre(usuario.get("fecha_ultimo_cambio_nombre"))
+        if not puede_cambiar:
+            raise ReglaNegocioError(
+                f"Solo podés cambiar tu nombre y apellido una vez cada 2 semanas para evitar fraudes. "
+                f"Podrás realizar un nuevo cambio en {dias_restantes} día(s)."
+            )
+
     cambios_usuario = {}
     if datos.nombre is not None:
-        cambios_usuario["nombre"] = datos.nombre
+        cambios_usuario["nombre"] = nombre_nuevo
     if datos.apellido is not None:
-        cambios_usuario["apellido"] = datos.apellido
+        cambios_usuario["apellido"] = apellido_nuevo
+    if cambio_identidad:
+        cambios_usuario["fecha_ultimo_cambio_nombre"] = datetime.now()
     if datos.telefono is not None:
-        cambios_usuario["telefono"] = datos.telefono
+        cambios_usuario["telefono"] = datos.telefono.strip() if datos.telefono else None
     if datos.foto_perfil is not None:
         cambios_usuario["foto_perfil"] = datos.foto_perfil
+    if datos.biografia is not None:
+        cambios_usuario["biografia"] = datos.biografia.strip() if datos.biografia else None
+    if datos.redes_sociales is not None:
+        if len(datos.redes_sociales) > 5:
+            raise ReglaNegocioError("Podés registrar como máximo 5 links a redes sociales.")
+        redes_data = [item.model_dump() for item in datos.redes_sociales]
+        cambios_usuario["redes_sociales"] = json.dumps(redes_data, ensure_ascii=False)
 
     if cambios_usuario:
         set_clause = ", ".join(f"{col} = %s" for col in cambios_usuario)
@@ -240,7 +319,8 @@ def actualizar_perfil(datos: PerfilUpdateIn, usuario=Depends(usuario_actual), db
 
     u_actualizado = uno(
         db,
-        "SELECT id_usuario, nombre, apellido, email, telefono, tipo_cuenta, estado, foto_perfil "
+        "SELECT id_usuario, nombre, apellido, email, telefono, tipo_cuenta, estado, foto_perfil, "
+        "       biografia, fecha_ultimo_cambio_nombre, redes_sociales "
         "FROM usuario WHERE id_usuario = %s",
         (id_usuario,),
     )
